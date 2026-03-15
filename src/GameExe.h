@@ -1,6 +1,11 @@
 #pragma once
 #include "GameState.h"
+#include "Save.h"
+#include "Load.h"
 #include "headers.h"
+#include <mutex>
+#include <sstream>
+#include <string>
 using namespace std;
 
 inline void printBoard(const Board& board) {
@@ -33,19 +38,101 @@ inline Position getMoveFromUI() {
     return Position(r, c); // Placeholder for UI input, to be implemented later
 }
 
-inline void runTest() {
-    GameState gameState;
+inline bool tryParseMove(const string& input, Position& outMove) {
+    istringstream iss(input);
+    int row = -1;
+    int column = -1;
+    char extra = '\0';
+
+    if (!(iss >> row >> column)) {
+        return false;
+    }
+    if (iss >> extra) {
+        return false;
+    }
+
+    outMove = Position(row, column);
+    return true;
+}
+
+inline void writeSharedState(GameState* sharedState, std::mutex* sharedMutex, const GameState& value) {
+    if (sharedState == nullptr || sharedMutex == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(*sharedMutex);
+    *sharedState = value;
+}
+
+inline void readSharedState(GameState* sharedState, std::mutex* sharedMutex, GameState& outValue) {
+    if (sharedState == nullptr || sharedMutex == nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(*sharedMutex);
+    outValue = *sharedState;
+}
+
+inline GameState runTest(
+    const GameState& initialState = GameState(),
+    const char* saveFile = "saves/current_game.json",
+    GameState* sharedState = nullptr,
+    std::mutex* sharedMutex = nullptr
+) {
+    GameState gameState = initialState;
+    writeSharedState(sharedState, sharedMutex, gameState);
 
     cout << "--- GOMOKU TEST STARTED ---\n";
+    cout << "Commands: <row col> | save | load | quit\n";
     printBoard(gameState.board);
 
     // Note: Make sure GameStatus::ONGOING matches whatever you named it in GameState.h!
     while (gameState.status == GameStatus::ONGOING) {
+        readSharedState(sharedState, sharedMutex, gameState);
 
         cout << "\nCurrent Turn: "
             << (gameState.currentPlayer == Player::PlayerX? "BLACK (X)" : "WHITE (O)") << "\n";
+        cout << "Enter command: ";
 
-        Position move = getMoveFromUI();
+        string input;
+        if (!getline(cin >> ws, input)) {
+            cout << ">> INPUT CLOSED. STOP GAME.\n";
+            break;
+        }
+
+        if (input == "save") {
+            if (saveGameState(gameState, saveFile)) {
+                cout << ">> SAVED: " << saveFile << "\n";
+            }
+            else {
+                cout << ">> SAVE FAILED!\n";
+            }
+            continue;
+        }
+
+        if (input == "load") {
+            GameState loadedState;
+            if (loadGameState(saveFile, loadedState)) {
+                gameState = loadedState;
+                writeSharedState(sharedState, sharedMutex, gameState);
+                cout << ">> LOADED: " << saveFile << "\n";
+                printBoard(gameState.board);
+            }
+            else {
+                cout << ">> LOAD FAILED! File missing or invalid.\n";
+            }
+            continue;
+        }
+
+        if (input == "quit") {
+            cout << ">> EXIT CURRENT GAME.\n";
+            break;
+        }
+
+        Position move;
+        if (!tryParseMove(input, move)) {
+            cout << ">> INVALID INPUT! Use: row col | save | load | quit\n";
+            continue;
+        }
+
         GameState nextState = playMove(gameState, move);
 
         // If the turn didn't change, playMove rejected the move!
@@ -55,6 +142,7 @@ inline void runTest() {
         else {
             // Move was valid, update the reality and print the new board
             gameState = nextState;
+            writeSharedState(sharedState, sharedMutex, gameState);
             printBoard(gameState.board);
         }
     }
@@ -69,6 +157,8 @@ inline void runTest() {
     else {
         cout << "\n*** IT'S A DRAW! ***\n";
     }
+    writeSharedState(sharedState, sharedMutex, gameState);
+    return gameState;
 }
 
 inline void run() {
@@ -78,4 +168,4 @@ inline void run() {
         Position move = getMoveFromUI();
         gameState = playMove(gameState, move);
     }
-}
+}   
