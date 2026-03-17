@@ -1,4 +1,4 @@
-#include "../libs/textures.h"
+#include "Textures.h"
 
 void LoadAllTextures(TextureBank& tex)
 {

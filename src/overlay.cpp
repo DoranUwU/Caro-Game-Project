@@ -1,25 +1,23 @@
-﻿#include "../libs/states.h"
-#include "../libs/ui.h"
+﻿#include "States.h"
+#include "UI.h"
 
-//  UpdateOverlay
-//  returnTo: state sẽ quay về khi nhấn Back / ESC
-void UpdateOverlay(AppContext& ctx, GameState returnTo)
+//  UpdateOverlay — dùng chung cho Settings / Help / About
+//  returnTo: UIScreen sẽ quay về khi nhấn Back / ESC
+void UpdateOverlay(AppContext& ctx, UIScreen returnTo)
 {
-    // Nút Back (vùng xấp xỉ)
     Vector2   mouse = GetMousePosition();
     Rectangle rect = { 30, 30, 180, 60 };
     bool backClicked = CheckCollisionPointRec(mouse, rect)
         && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 
     if (backClicked || IsKeyPressed(KEY_ESCAPE))
-        ctx.state = returnTo;
+        ctx.screen = returnTo;
 }
 
 //  DrawOverlay
 void DrawOverlay(const AppContext& ctx, const TextureBank& tex, const char* title)
 {
-    bool wantsBack = DrawOverlayScreen(tex.originBg, title,
+    DrawOverlayScreen(tex.originBg, title,
         tex.buttonBackNormal,
         tex.buttonBackHover);
-    (void)wantsBack;
 }

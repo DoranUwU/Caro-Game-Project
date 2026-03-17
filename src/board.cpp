@@ -1,62 +1,41 @@
-﻿#include "../libs/board.h"
+﻿#include "Board.h"      
+#include "GameState.h" 
 #include <math.h>
-
-//  InitBoard
-void InitBoard(AppContext& ctx)
-{
-    for (int y = 0; y < BOARD_SIZE; y++)
-        for (int x = 0; x < BOARD_SIZE; x++)
-            ctx.board[y][x] = 0;
-
-    ctx.currentPlayer = 1;
-    ctx.cursorX = 0;
-    ctx.cursorY = 0;
-}
-
-//  PlacePiece
-bool PlacePiece(AppContext& ctx, int x, int y)
-{
-    if (x < 0 || x >= BOARD_SIZE) return false;
-    if (y < 0 || y >= BOARD_SIZE) return false;
-    if (ctx.board[y][x] != 0)     return false;
-
-    ctx.board[y][x] = ctx.currentPlayer;
-    ctx.currentPlayer = (ctx.currentPlayer == 1) ? 2 : 1;
-    return true;
-}
 
 //  DrawBoard
 void DrawBoard(int startX, int startY,
-    const int board[BOARD_SIZE][BOARD_SIZE],
+    const GameState& gs,
     Texture2D tileLight,
     Texture2D tileDark,
     Texture2D spriteX,
     Texture2D spriteO,
     int curX, int curY)
 {
-    const int cellSize = 55;
+    const int cellSize = 40;   
 
-    for (int y = 0; y < BOARD_SIZE; y++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int x = 0; x < BOARD_SIZE; x++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
-            int       drawX = startX + x * cellSize;
-            int       drawY = startY + y * cellSize;
-            bool      light = (x + y) % 2 == 0;
+            int       drawX = startX + col * cellSize;
+            int       drawY = startY + row * cellSize;
+            bool      light = (row + col) % 2 == 0;
             Texture2D tile = light ? tileLight : tileDark;
             float     scale = (float)cellSize / tile.width;
             DrawTextureEx(tile, Vector2{ (float)drawX, (float)drawY }, 0, scale, WHITE);
         }
     }
 
-    for (int y = 0; y < BOARD_SIZE; y++)
+    for (int row = 0; row < BOARD_SIZE; row++)
     {
-        for (int x = 0; x < BOARD_SIZE; x++)
+        for (int col = 0; col < BOARD_SIZE; col++)
         {
-            if (board[y][x] == 0) continue;
-            int       drawX = startX + x * cellSize;
-            int       drawY = startY + y * cellSize;
-            Texture2D sprite = (board[y][x] == 1) ? spriteX : spriteO;
+            Player cell = gs.board.cell[row * BOARD_SIZE + col];
+            if (cell == Player::NONE) continue;
+
+            int       drawX = startX + col * cellSize;
+            int       drawY = startY + row * cellSize;
+            Texture2D sprite = (cell == Player::PlayerX) ? spriteX : spriteO;
             float     scale = (float)cellSize / sprite.width;
             DrawTextureEx(sprite, Vector2{ (float)drawX, (float)drawY }, 0, scale, WHITE);
         }
@@ -67,6 +46,6 @@ void DrawBoard(int startX, int startY,
     {
         int mx = startX + curX * cellSize + cellSize / 2;
         int my = startY + curY * cellSize + cellSize / 2;
-        DrawRectangle(mx - 14, my + 14, 28, 6, BLACK);
+        DrawRectangle(mx - 10, my + 10, 20, 4, BLACK);
     }
 }

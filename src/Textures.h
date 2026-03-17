@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿#ifndef TEXTURES_H
+#define TEXTURES_H
+
 #include "raylib.h"
 
 // ============================================================
@@ -44,3 +46,5 @@ struct TextureBank
 // ============================================================
 void LoadAllTextures(TextureBank& tex);
 void UnloadAllTextures(TextureBank& tex);
+
+#endif // TEXTURES_H

@@ -1,11 +1,14 @@
-﻿#include "../libs/states.h"
-#include "../libs/ui.h"
-#include "../libs/board.h"
-#include "../libs/text_renderer.h"
+﻿#include "States.h"
+#include "UI.h"
+#include "Board.h"     
+#include "TextRenderer.h"
+#include "GameLogic.h"
+#include "Save.h"
+#include "Load.h"
 
-static const int CELL_SIZE = 55;
+static const int  CELL_SIZE = 40;
+static const char* SAVE_FILE = "saves/current_game.json";
 
-// Tính toạ độ góc trên-trái của bàn cờ (căn giữa màn hình)
 static void GetBoardOrigin(int& startX, int& startY)
 {
     int boardPx = BOARD_SIZE * CELL_SIZE;
@@ -16,9 +19,11 @@ static void GetBoardOrigin(int& startX, int& startY)
 //  UpdateGameplay
 void UpdateGameplay(AppContext& ctx)
 {
-    if (IsKeyPressed(KEY_ESCAPE))
+    // Game kết thúc — nhấn ENTER để về menu
+    if (ctx.gameState.status != GameStatus::ONGOING)
     {
-        ctx.state = MENU;
+        if (IsKeyPressed(KEY_ENTER))
+            ctx.screen = SCREEN_MENU;
         return;
     }
 
@@ -26,24 +31,24 @@ void UpdateGameplay(AppContext& ctx)
     GetBoardOrigin(startX, startY);
 
     // Di chuyển cursor bằng phím
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) { ctx.cursorY--; if (ctx.cursorY < 0)           ctx.cursorY = BOARD_SIZE - 1; }
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) { ctx.cursorY++; if (ctx.cursorY >= BOARD_SIZE)  ctx.cursorY = 0; }
-    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) { ctx.cursorX--; if (ctx.cursorX < 0)           ctx.cursorX = BOARD_SIZE - 1; }
-    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) { ctx.cursorX++; if (ctx.cursorX >= BOARD_SIZE)  ctx.cursorX = 0; }
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) { ctx.cursorY--; if (ctx.cursorY < 0)          ctx.cursorY = BOARD_SIZE - 1; }
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) { ctx.cursorY++; if (ctx.cursorY >= BOARD_SIZE) ctx.cursorY = 0; }
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) { ctx.cursorX--; if (ctx.cursorX < 0)          ctx.cursorX = BOARD_SIZE - 1; }
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) { ctx.cursorX++; if (ctx.cursorX >= BOARD_SIZE) ctx.cursorX = 0; }
 
-    // Đánh bằng phím
+    // Đánh bằng phím Enter/Space — Position(row, col)
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
-        PlacePiece(ctx, ctx.cursorX, ctx.cursorY);
+        ctx.gameState = playMove(ctx.gameState, Position(ctx.cursorY, ctx.cursorX));
 
     // Cập nhật cursor theo chuột
     {
         Vector2 mouse = GetMousePosition();
-        int mx = (int)(mouse.x - startX) / CELL_SIZE;
-        int my = (int)(mouse.y - startY) / CELL_SIZE;
-        if (mx >= 0 && mx < BOARD_SIZE && my >= 0 && my < BOARD_SIZE)
+        int mc = (int)(mouse.x - startX) / CELL_SIZE;
+        int mr = (int)(mouse.y - startY) / CELL_SIZE;
+        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
         {
-            ctx.cursorX = mx;
-            ctx.cursorY = my;
+            ctx.cursorX = mc;
+            ctx.cursorY = mr;
         }
     }
 
@@ -51,25 +56,38 @@ void UpdateGameplay(AppContext& ctx)
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
         Vector2 mouse = GetMousePosition();
-        int x = (int)(mouse.x - startX) / CELL_SIZE;
-        int y = (int)(mouse.y - startY) / CELL_SIZE;
-        if (x >= 0 && x < BOARD_SIZE && y >= 0 && y < BOARD_SIZE)
-            PlacePiece(ctx, x, y);
+        int mc = (int)(mouse.x - startX) / CELL_SIZE;
+        int mr = (int)(mouse.y - startY) / CELL_SIZE;
+        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
+            ctx.gameState = playMove(ctx.gameState, Position(mr, mc));
     }
 
-    // Nút Setting 
+    // F5 = save nhanh, F9 = load nhanh
+    if (IsKeyPressed(KEY_F5))
+        saveGameState(ctx.gameState, SAVE_FILE);
+
+    if (IsKeyPressed(KEY_F9))
+    {
+        GameState loaded;
+        if (loadGameState(SAVE_FILE, loaded))
+            ctx.gameState = loaded;
+    }
+
+    // Nút Setting góc phải
     {
         Vector2   mouse = GetMousePosition();
         Rectangle rect = { (float)(GetScreenWidth() - 210), 30, 180, 60 };
         if (CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
-            ctx.prevState = GAMEPLAY;
-            ctx.state = SETTINGS;
+            ctx.prevScreen = SCREEN_GAMEPLAY;
+            ctx.screen = SCREEN_SETTINGS;
         }
     }
 }
 
+// ============================================================
 //  DrawGameplay
+// ============================================================
 void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
 {
     DrawFullscreenTexture(tex.gameplayBg);
@@ -78,7 +96,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     GetBoardOrigin(startX, startY);
 
     DrawBoard(startX, startY,
-        ctx.board,
+        ctx.gameState,
         tex.tileLight, tex.tileDark,
         tex.spriteX, tex.spriteO,
         ctx.cursorX, ctx.cursorY);
@@ -92,8 +110,32 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     DrawPixelText(left.c_str(), 350, 68, 4, WHITE);
     DrawPixelText(right.c_str(), 860 + 240, 68, 4, WHITE);
 
+    // Lượt đang đi
+   /* const char* turnStr = (ctx.gameState.currentPlayer == Player::PlayerX)
+        ? "X's turn" : "O's turn";
+    DrawPixelText(turnStr, GetScreenWidth() / 2 - 60, 68, 4, GOLD);*/
+
+    // Màn hình kết thúc game
+    if (ctx.gameState.status != GameStatus::ONGOING)
+    {
+        const char* msg = "";
+        if (ctx.gameState.status == GameStatus::WIN_X) msg = "X WINS!";
+        else if (ctx.gameState.status == GameStatus::WIN_O) msg = "O WINS!";
+        else if (ctx.gameState.status == GameStatus::DRAW)  msg = "DRAW!";
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
+
+        int tw = (int)(strlen(msg) * 8 * 8); DrawPixelText(msg, GetScreenWidth() / 2 - 150,  170, 8, GOLD);
+
+        DrawPixelText("Press ENTER to return",
+            GetScreenWidth() / 2 - 250,
+            GetScreenHeight() / 2 + 400,
+            4, WHITE);
+    }
+
     // Nút Setting
     bool hovered, clicked;
     DrawSettingButton(tex.buttonSettingNormal, tex.buttonSettingHover,
         GetScreenWidth(), hovered, clicked);
+
+    DrawPixelText("F5: Save   F9: Load", 50, GetScreenHeight() - 100, 2, GRAY);
 }

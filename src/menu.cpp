@@ -1,9 +1,8 @@
-﻿#include "../libs/states.h"
-#include "../libs/ui.h"
-#include "../libs/text_renderer.h"
+﻿#include "States.h"
+#include "UI.h"
+#include "TextRenderer.h"
 #include <math.h>
 
-//  Menu items
 struct MenuItem { const char* text; int x; int y; };
 
 static const MenuItem menuItems[] =
@@ -17,7 +16,6 @@ static const MenuItem menuItems[] =
 };
 static const int itemCount = (int)(sizeof(menuItems) / sizeof(menuItems[0]));
 
-//  UpdateMenu
 void UpdateMenu(AppContext& ctx)
 {
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
@@ -35,16 +33,16 @@ void UpdateMenu(AppContext& ctx)
     {
         switch (ctx.selectedItem)
         {
-        case 0: ctx.prevState = MENU; ctx.state = MODE_SELECTION; break;
-        case 1: /* Load Game — chưa implement */ break;
-        case 2: ctx.prevState = MENU; ctx.state = SETTINGS;       break;
-        case 3: ctx.prevState = MENU; ctx.state = HELP;           break;
-        case 4: ctx.prevState = MENU; ctx.state = ABOUT;          break;
-        case 5: CloseWindow(); break;
+        case 0: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; break;
+        case 1: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOADGAME;      break;
+        case 2: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS;       break;
+        case 3: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_HELP;           break;
+        case 4: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_ABOUT;          break;
+        case 5: CloseWindow();                                                     break;
         }
     }
 
-    // Hover chuột
+    // Hover + click chuột
     Vector2 mouse = GetMousePosition();
     for (int i = 0; i < itemCount; i++)
     {
@@ -54,7 +52,7 @@ void UpdateMenu(AppContext& ctx)
             ctx.selectedItem = i;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
-                if (i == 0) { ctx.prevState = MENU; ctx.state = MODE_SELECTION; }
+                if (i == 0) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; }
                 if (i == 5) { CloseWindow(); }
             }
         }

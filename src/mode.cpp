@@ -1,19 +1,21 @@
-﻿#include "../libs/states.h"
-#include "../libs/ui.h"
-#include "../libs/board.h"
-#include "../libs/text_renderer.h"
+﻿#include "States.h"
+#include "UI.h"
+#include "TextRenderer.h"
 
-//  Helpers — khởi tạo lại setup stage trước khi vào PLAYER_SETUP
+//  Reset toàn bộ game state + UI setup trước khi vào PLAYER_SETUP
 static void StartSetup(AppContext& ctx, bool withBot)
 {
     ctx.playWithBot = withBot;
+    ctx.gameState = GameState();   // reset board, currentPlayer, status
     ctx.player1.name.clear();
     ctx.player2.name.clear();
     ctx.currentInput.clear();
     ctx.setupStage = 0;
     ctx.selectedChar = 0;
-    ctx.prevState = MODE_SELECTION;
-    ctx.state = PLAYER_SETUP;
+    ctx.cursorX = BOARD_SIZE / 2;
+    ctx.cursorY = BOARD_SIZE / 2;
+    ctx.prevScreen = SCREEN_MODE_SELECTION;
+    ctx.screen = SCREEN_PLAYER_SETUP;
 }
 
 //  UpdateModeSelection
@@ -23,20 +25,18 @@ void UpdateModeSelection(AppContext& ctx)
     bool keyRight = IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D);
 
     if (keyLeft || keyRight)
-        ctx.selectedMode = !ctx.selectedMode;   
+        ctx.selectedMode = !ctx.selectedMode; 
 
     if (IsKeyPressed(KEY_ENTER))
         StartSetup(ctx, ctx.selectedMode == 1);
 
     if (IsKeyPressed(KEY_ESCAPE))
-        ctx.state = MENU;
+        ctx.screen = SCREEN_MENU;
 
-    // Nút Back (xử lý trong Update để tập trung logic)
-    bool hovered, clicked;
     Vector2   mouse = GetMousePosition();
-    Rectangle rect = { 30, 30, 180, 60 };     
+    Rectangle rect = { 30, 30, 180, 60 };
     if (CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        ctx.state = MENU;
+        ctx.screen = SCREEN_MENU;
 }
 
 //  DrawModeSelection

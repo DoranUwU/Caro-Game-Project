@@ -1,5 +1,5 @@
-﻿#include "../libs/ui.h"
-#include "../libs/text_renderer.h"
+﻿#include "UI.h"
+#include "TextRenderer.h"
 #include <math.h>
 #include <cstring>
 
@@ -84,8 +84,6 @@ void DrawSettingButton(Texture2D normalTex, Texture2D hoverTex,
 }
 
 //  DrawOverlayScreen
-//  Dùng chung cho Settings / Help / About.
-//  Trả về true nếu cần quay lại state trước.
 bool DrawOverlayScreen(Texture2D bg,
     const char* title,
     Texture2D backNormal,
