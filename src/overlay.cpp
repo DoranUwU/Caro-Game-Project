@@ -6,7 +6,7 @@
 void UpdateOverlay(AppContext& ctx, UIScreen returnTo)
 {
     Vector2   mouse = GetMousePosition();
-    Rectangle rect = { 30, 30, 180, 60 };
+    Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
     bool backClicked = CheckCollisionPointRec(mouse, rect)
         && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 

@@ -8,7 +8,7 @@ static void UpdateGame(AppContext& ctx)
     switch (ctx.screen)
     {
     case SCREEN_MENU:           UpdateMenu(ctx);                         break;
-    case SCREEN_LOADGAME:       UpdateOverlay(ctx, SCREEN_MENU);        break;
+    case SCREEN_LOAD_GAME:      UpdateLoadGame(ctx);                    break;
     case SCREEN_MODE_SELECTION: UpdateModeSelection(ctx);               break;
     case SCREEN_PLAYER_SETUP:   UpdatePlayerSetup(ctx);                 break;
     case SCREEN_GAMEPLAY:       UpdateGameplay(ctx);                     break;
@@ -23,6 +23,7 @@ static void DrawGame(const AppContext& ctx, const TextureBank& tex)
     switch (ctx.screen)
     {
     case SCREEN_MENU:           DrawMenu(ctx, tex);                      break;
+    case SCREEN_LOAD_GAME:      DrawLoadGame(ctx, tex);                   break;
     case SCREEN_MODE_SELECTION: DrawModeSelection(ctx, tex);            break;
     case SCREEN_PLAYER_SETUP:   DrawPlayerSetup(ctx, tex);              break;
     case SCREEN_GAMEPLAY:       DrawGameplay(ctx, tex);                  break;
@@ -34,8 +35,8 @@ static void DrawGame(const AppContext& ctx, const TextureBank& tex)
 
 static void RunGame()
 {
-    InitWindow(1920, 1080, "Game Caro");
-    SetTargetFPS(60);
+    InitWindow(SCREEN_W, SCREEN_H, "Game Caro");
+    SetTargetFPS(TARGET_FPS);
 
     TextureBank tex;
     LoadAllTextures(tex);

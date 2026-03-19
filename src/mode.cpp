@@ -1,6 +1,7 @@
 ﻿#include "States.h"
 #include "UI.h"
 #include "TextRenderer.h"
+#include "Constants.h"
 
 //  Reset toàn bộ game state + UI setup trước khi vào PLAYER_SETUP
 static void StartSetup(AppContext& ctx, bool withBot)
@@ -34,7 +35,7 @@ void UpdateModeSelection(AppContext& ctx)
         ctx.screen = SCREEN_MENU;
 
     Vector2   mouse = GetMousePosition();
-    Rectangle rect = { 30, 30, 180, 60 };
+    Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
     if (CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         ctx.screen = SCREEN_MENU;
 }

@@ -9,6 +9,9 @@
 void UpdateMenu(AppContext& ctx);
 void DrawMenu(const AppContext& ctx, const TextureBank& tex);
 
+void UpdateLoadGame(AppContext& ctx);
+void DrawLoadGame(const AppContext& ctx, const TextureBank& tex);
+
 void UpdateModeSelection(AppContext& ctx);
 void DrawModeSelection(const AppContext& ctx, const TextureBank& tex);
 

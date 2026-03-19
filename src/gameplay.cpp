@@ -2,11 +2,10 @@
 #include "UI.h"
 #include "Board.h"     
 #include "TextRenderer.h"
-#include "GameLogic.h"
 #include "Save.h"
 #include "Load.h"
+#include "libs.h"
 
-static const int  CELL_SIZE = 40;
 static const char* SAVE_FILE = "saves/current_game.json";
 
 static void GetBoardOrigin(int& startX, int& startY)
@@ -62,11 +61,11 @@ void UpdateGameplay(AppContext& ctx)
             ctx.gameState = playMove(ctx.gameState, Position(mr, mc));
     }
 
-    // F5 = save nhanh, F9 = load nhanh
-    if (IsKeyPressed(KEY_F5))
+    // L = save nhanh, T = load nhanh
+    if (IsKeyPressed(KEY_L))
         saveGameState(ctx.gameState, SAVE_FILE);
 
-    if (IsKeyPressed(KEY_F9))
+    if (IsKeyPressed(KEY_T))
     {
         GameState loaded;
         if (loadGameState(SAVE_FILE, loaded))
@@ -76,7 +75,7 @@ void UpdateGameplay(AppContext& ctx)
     // Nút Setting góc phải
     {
         Vector2   mouse = GetMousePosition();
-        Rectangle rect = { (float)(GetScreenWidth() - 210), 30, 180, 60 };
+        Rectangle rect = { SCREEN_W - BTN_SETTINGS_OFFSET, BTN_BACK_Y, BTN_MAX_W, BTN_BACK_H };
         if (CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
             ctx.prevScreen = SCREEN_GAMEPLAY;
@@ -95,7 +94,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     int startX, startY;
     GetBoardOrigin(startX, startY);
 
-    DrawBoard(startX, startY,
+    DrawBoard(startX, startY + 20,
         ctx.gameState,
         tex.tileLight, tex.tileDark,
         tex.spriteX, tex.spriteO,
@@ -107,8 +106,8 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         ? (ctx.playWithBot ? "Bot" : "Player 2")
         : ctx.player2.name;
 
-    DrawPixelText(left.c_str(), 350, 68, 4, WHITE);
-    DrawPixelText(right.c_str(), 860 + 240, 68, 4, WHITE);
+    DrawPixelText(left.c_str(), HUD_PLAYER1_X, HUD_Y, FONT_SCALE_MD, WHITE);
+    DrawPixelText(right.c_str(), HUD_PLAYER2_X, HUD_Y, FONT_SCALE_MD, WHITE);
 
     // Lượt đang đi
    /* const char* turnStr = (ctx.gameState.currentPlayer == Player::PlayerX)
@@ -124,7 +123,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         else if (ctx.gameState.status == GameStatus::DRAW)  msg = "DRAW!";
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
 
-        int tw = (int)(strlen(msg) * 8 * 8); DrawPixelText(msg, GetScreenWidth() / 2 - 150,  170, 8, GOLD);
+        int tw = (int)(strlen(msg) * 8 * 8); DrawPixelText(msg, GetScreenWidth() / 2 - 150,  150, 8, GOLD);
 
         DrawPixelText("Press ENTER to return",
             GetScreenWidth() / 2 - 250,
@@ -137,5 +136,5 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     DrawSettingButton(tex.buttonSettingNormal, tex.buttonSettingHover,
         GetScreenWidth(), hovered, clicked);
 
-    DrawPixelText("F5: Save   F9: Load", 50, GetScreenHeight() - 100, 2, GRAY);
+    DrawPixelText("L: Save   T: Load", 50, GetScreenHeight() - 100, 2, GRAY);
 }

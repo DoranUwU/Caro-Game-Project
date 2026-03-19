@@ -1,5 +1,6 @@
 ﻿#include "UI.h"
 #include "TextRenderer.h"
+#include "Constants.h"
 #include <math.h>
 #include <cstring>
 
@@ -15,16 +16,13 @@ void DrawFullscreenTexture(Texture2D tex)
 int GetPixelFontTextWidth(const std::string& text, int scale)
 {
     if (text.empty()) return 0;
-    const int glyphWidth = 5;
-    const int spacing = 1;
-    return (int)text.size() * (glyphWidth + spacing) * scale;
+    return (int)text.size() * (FONT_GLYPH_W + FONT_SPACING) * scale;
 }
 
 //  DrawBackButton
 void DrawBackButton(Texture2D normalTex, Texture2D hoverTex,
     bool& hovered, bool& clicked)
 {
-    const int bx = 30, by = 30;
     int bw = normalTex.width;
 
     float scale = (bw > 180) ? 180.0f / bw : 1.0f;
@@ -32,13 +30,13 @@ void DrawBackButton(Texture2D normalTex, Texture2D hoverTex,
     int dh = (int)(normalTex.height * scale);
 
     Vector2   mouse = GetMousePosition();
-    Rectangle rect = { (float)bx, (float)by, (float)dw, (float)dh };
+    Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, (float)dw, (float)dh };
 
     hovered = CheckCollisionPointRec(mouse, rect);
     clicked = hovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 
     Texture2D tex = hovered ? hoverTex : normalTex;
-    DrawTextureEx(tex, Vector2{ (float)bx, (float)by }, 0, scale, WHITE);
+    DrawTextureEx(tex, Vector2{ BTN_BACK_X, BTN_BACK_Y }, 0, scale, WHITE);
 }
 
 //  DrawSettingButton
@@ -46,7 +44,7 @@ void DrawSettingButton(Texture2D normalTex, Texture2D hoverTex,
     int screenW, bool& hovered, bool& clicked)
 {
     int bw = normalTex.width, bh = normalTex.height;
-    float scaleNormal = (bw > 180) ? 180.0f / bw : 1.0f;
+    float scaleNormal = (bw > BTN_MAX_W) ? 180.0f / bw : 1.0f;
 
     int dw = (int)(bw * scaleNormal);
     int dh = (int)(bh * scaleNormal);
@@ -91,12 +89,11 @@ bool DrawOverlayScreen(Texture2D bg,
 {
     DrawFullscreenTexture(bg);
 
-    int titleScale = 8;
-    int titleW = (int)(strlen(title) * 8 * titleScale);
+    int titleW = (int)(strlen(title) * 8 * FONT_SCALE_XL);
     DrawPixelTextStyled(title,
         GetScreenWidth() / 2 - titleW / 2,
         GetScreenHeight() / 2 - 40,
-        titleScale);
+        FONT_SCALE_XL);
 
     bool hovered, clicked;
     DrawBackButton(backNormal, backHover, hovered, clicked);

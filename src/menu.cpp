@@ -1,6 +1,7 @@
 ﻿#include "States.h"
 #include "UI.h"
 #include "TextRenderer.h"
+#include "Constants.h"
 #include <math.h>
 
 struct MenuItem { const char* text; int x; int y; };
@@ -34,7 +35,7 @@ void UpdateMenu(AppContext& ctx)
         switch (ctx.selectedItem)
         {
         case 0: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; break;
-        case 1: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOADGAME;      break;
+        case 1: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOAD_GAME;      break;
         case 2: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS;       break;
         case 3: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_HELP;           break;
         case 4: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_ABOUT;          break;
@@ -70,7 +71,7 @@ void DrawMenu(const AppContext& ctx, const TextureBank& tex)
         {
             float glow = (sinf((float)GetTime() * 4.0f) + 1.0f) / 2.0f;
             Color glowColor = { 255, 220, 120, (unsigned char)(200 + glow * 55) };
-            int   scale = (int)(6 + glow);
+            int   scale = (int)(FONT_SCALE_LG + glow);
 
             DrawPixelText(menuItems[i].text,
                 menuItems[i].x + 3, menuItems[i].y + 3, scale, BLACK);
@@ -80,7 +81,7 @@ void DrawMenu(const AppContext& ctx, const TextureBank& tex)
         else
         {
             DrawPixelTextStyled(menuItems[i].text,
-                menuItems[i].x, menuItems[i].y, 6);
+                menuItems[i].x, menuItems[i].y, FONT_SCALE_LG);
         }
     }
 }
