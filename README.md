@@ -7,10 +7,10 @@
 * 24120200 - Lê Bảo Minh
 * 24120238 - Phạm Anh Tuấn
 
-## 📦 Cấu trúc file
+##  Cấu trúc file
 
 ```
-Caro_vscode/
+src/
 │
 ├── .vscode/
 │   ├── c_cpp_properties.json
@@ -28,74 +28,41 @@ Caro_vscode/
 
 ---
 
-## ⚙️ Requirements
+## Cài đặt môi trường
 
 * MinGW (g++)
-* VSCode with C/C++ extension
+* Raylib
+* nlohmann/json
 
 ---
 
-## 🚀 How to Run
+## Chạy chương trình
 
-### ✅ Build & Run (Recommended)
+### Nhấn đúp chuột vào file game.exe
 
-1. Open project in VSCode
-2. Press:
+### Build và chạy trên VSCode
 
 ```
-Ctrl + Shift + B
+g++ -std=c++17 -O2 -I.\src -I.\libs\raylib\include -I.\libs\nlohmann .\src\*.cpp -L.\libs\raylib\lib -lraylib -lopengl32 -lgdi32 -lwinmm -o .\game.exe
 ```
 
-→ This will automatically compile the project using the predefined `tasks.json`
-
-3. Run the game:
+3. Chạy trò chơi:
 
 ```
 ./game.exe
 ```
-
----
-
-## ❗ Notes
-
-* No need to compile manually with `g++` commands
-* All include paths and libraries are already configured in:
-
-  * `.vscode/tasks.json`
-  * `.vscode/c_cpp_properties.json`
-
----
-
-## 📚 Libraries Used
-
-* raylib (graphics & input)
-* nlohmann/json (save/load game data)
-
----
-
-## 💾 Features
-
-* Play Caro (Gomoku)
-* Save / Load game state (JSON)
-* Basic UI rendering with raylib
-
----
-
-## 🛠️ Troubleshooting
-
-### ❌ Cannot find `json.hpp`
-
-Make sure folder structure is:
-
+Hoặc  
 ```
-libs/nlohmann/nlohmann/json.hpp
+Nhấn đúp chuột vào file game.exe ở trong thư mục chính.
 ```
-
 ---
 
-### ❌ Build errors
+#
 
-* Ensure MinGW is installed correctly
-* Check `compilerPath` in `c_cpp_properties.json`
+## Tính năng
 
+* Chơi game Caro (Gomoku)
+* Save / Load trạng thái game (JSON)
+* Giao diện với thư viện raylib
 ---
+
