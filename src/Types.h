@@ -1,6 +1,13 @@
 ﻿#pragma once
 #include <string>
 #include "GameState.h"
+#include "Sound.h"
+
+enum BGMType {
+    BGM_NONE,
+    BGM_MENU,
+    BGM_INGAME
+};
 
 enum UIScreen
 {
@@ -32,6 +39,11 @@ struct AppContext
     // State machine màn hình
     UIScreen screen = SCREEN_MENU;
     UIScreen prevScreen = SCREEN_MENU;
+
+    // State nhạc
+    SoundBank* sound;
+    BGMType curBGM;
+    bool hasPlayedWinsfx = false;
 
     // Thông tin hiển thị player
     PlayerInfo player1;

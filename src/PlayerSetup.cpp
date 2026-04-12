@@ -43,6 +43,7 @@ void UpdatePlayerSetup(AppContext& ctx)
 
         if (IsKeyPressed(KEY_ENTER))
         {
+            PlaySound(ctx.sound->clickSfx);
             if (ctx.setupStage == 0)
             {
                 ctx.player1.name = ctx.currentInput.empty() ? "PLAYER 1" : ctx.currentInput;

@@ -22,6 +22,7 @@ void UpdateMenu(AppContext& ctx)
     {
         ctx.selectedItem++;
         if (ctx.selectedItem >= itemCount) ctx.selectedItem = 0;
+
     }
     if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
     {
@@ -34,12 +35,13 @@ void UpdateMenu(AppContext& ctx)
         switch (ctx.selectedItem)
         {
         case 0: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; break;
-        case 1: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOADGAME;      break;
+        case 1: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOADGAME;       break;
         case 2: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS;       break;
         case 3: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_HELP;           break;
         case 4: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_ABOUT;          break;
-        case 5: CloseWindow();                                                     break;
+        case 5: CloseWindow();                                                    break;
         }
+        PlaySound(ctx.sound->clickSfx);
     }
 
     // Hover + click chuột
@@ -53,7 +55,12 @@ void UpdateMenu(AppContext& ctx)
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
                 if (i == 0) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; }
+                if (i == 1) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOADGAME;}
+                if (i == 2) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS;}
+                if (i == 3) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_HELP;}
+                if (i == 4) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_ABOUT;}
                 if (i == 5) { CloseWindow(); }
+                PlaySound(ctx.sound->clickSfx);
             }
         }
     }

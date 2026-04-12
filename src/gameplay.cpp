@@ -19,11 +19,19 @@ static void GetBoardOrigin(int& startX, int& startY)
 //  UpdateGameplay
 void UpdateGameplay(AppContext& ctx)
 {
+    bool hasPlayedWinSfx = false;
     // Game kết thúc — nhấn ENTER để về menu
     if (ctx.gameState.status != GameStatus::ONGOING)
     {
+        // bool hasPlayedWinSfx = false;
+        if (!ctx.hasPlayedWinsfx) {
+            StopMusicStream(ctx.sound->ingame);
+            PlaySound(ctx.sound->win);
+            ctx.hasPlayedWinsfx = true;
+        }
         if (IsKeyPressed(KEY_ENTER))
             ctx.screen = SCREEN_MENU;
+
         return;
     }
 
@@ -37,9 +45,10 @@ void UpdateGameplay(AppContext& ctx)
     if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) { ctx.cursorX++; if (ctx.cursorX >= BOARD_SIZE) ctx.cursorX = 0; }
 
     // Đánh bằng phím Enter/Space — Position(row, col)
-    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+        PlaySound(ctx.sound->placeSfx);
         ctx.gameState = playMove(ctx.gameState, Position(ctx.cursorY, ctx.cursorX));
-
+    }
     // Cập nhật cursor theo chuột
     {
         Vector2 mouse = GetMousePosition();
@@ -58,8 +67,10 @@ void UpdateGameplay(AppContext& ctx)
         Vector2 mouse = GetMousePosition();
         int mc = (int)(mouse.x - startX) / CELL_SIZE;
         int mr = (int)(mouse.y - startY) / CELL_SIZE;
-        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
+        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE) {
             ctx.gameState = playMove(ctx.gameState, Position(mr, mc));
+            PlaySound(ctx.sound->placeSfx);
+        }
     }
 
     // F5 = save nhanh, F9 = load nhanh

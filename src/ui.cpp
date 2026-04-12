@@ -85,21 +85,41 @@ void DrawSettingButton(Texture2D normalTex, Texture2D hoverTex,
 
 //  DrawOverlayScreen
 bool DrawOverlayScreen(Texture2D bg,
-    const char* title,
-    Texture2D backNormal,
-    Texture2D backHover)
+                       const char* title,
+                       Texture2D backNormal,
+                       Texture2D backHover)
 {
+    // 1. Vẽ hình nền (Background)
     DrawFullscreenTexture(bg);
 
-    int titleScale = 8;
-    int titleW = (int)(strlen(title) * 8 * titleScale);
-    DrawPixelTextStyled(title,
-        GetScreenWidth() / 2 - titleW / 2,
-        GetScreenHeight() / 2 - 40,
-        titleScale);
+    // ==========================================
+    // 2. VẼ Ô ĐEN MỜ TRUNG TÂM (THÊM MỚI Ở ĐÂY)
+    // ==========================================
+    float panelW = GetScreenWidth() * 0.7f;
+    float panelH = GetScreenHeight() * 0.7f;
+    float panelX = (GetScreenWidth() / 2.0f) - (panelW / 2.0f);
+    float panelY = (GetScreenHeight() / 2.0f) - (panelH / 2.0f);
+    
+    // Sử dụng Fade(BLACK, 0.75f) để tạo màu đen với 75% opacity
+    DrawRectangle((int)panelX, (int)panelY, (int)panelW, (int)panelH, Fade(BLACK, 0.75f));
+    // ==========================================
 
+    // 3. Vẽ Tiêu đề (Góc trên bên phải)
+    Color antiqueGold = { 218, 165, 32, 255 };
+    int titleScale = 10;
+    int titleW = (int)(strlen(title) * 8 * titleScale);
+    int padding = 60;
+    int x = GetScreenWidth() - titleW - padding;
+    int y = padding;
+    
+    
+    DrawText(title, x + 4, y + 4, titleScale * 8, Fade(BLACK, 0.5f)); 
+    DrawText(title, x, y, titleScale * 8, antiqueGold);
+
+    // 4. Vẽ nút Back
     bool hovered, clicked;
     DrawBackButton(backNormal, backHover, hovered, clicked);
 
+    // 5. Trả về kết quả
     return clicked || IsKeyPressed(KEY_ESCAPE);
 }

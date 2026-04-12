@@ -27,8 +27,9 @@ void UpdateModeSelection(AppContext& ctx)
     if (keyLeft || keyRight)
         ctx.selectedMode = !ctx.selectedMode; 
 
-    if (IsKeyPressed(KEY_ENTER))
+    if (IsKeyPressed(KEY_ENTER)) {
         StartSetup(ctx, ctx.selectedMode == 1);
+    }
 
     if (IsKeyPressed(KEY_ESCAPE))
         ctx.screen = SCREEN_MENU;
