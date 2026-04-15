@@ -97,6 +97,22 @@ inline bool jsonToGameState(const json& root, GameState& outState) {
 		parsed.board.cell[i] = cellPlayer;
 	}
 
+	// Deserialize winLine (backward-compatible: old saves may not have it)
+	parsed.winLineCount = 0;
+	if (root.contains("winLineCount") && root["winLineCount"].is_number_integer() &&
+		root.contains("winLine") && root["winLine"].is_array()) {
+		int count = root["winLineCount"].get<int>();
+		const json& wl = root["winLine"];
+		if (count >= 0 && count <= MAX_WIN_LINE && (int)wl.size() == count) {
+			for (int i = 0; i < count; ++i) {
+				if (wl[i].is_object() && wl[i].contains("row") && wl[i].contains("column")) {
+					parsed.winLine[i] = Position(wl[i]["row"].get<int>(), wl[i]["column"].get<int>());
+				}
+			}
+			parsed.winLineCount = count;
+		}
+	}
+
 	outState = parsed;
 	return true;
 }
@@ -105,6 +121,7 @@ inline bool loadGameState(const char* filename, GameState& outState) {
 	if (filename == nullptr || filename[0] == '\0') {
 		return false;
 	}
+
 	if (!FileExists(filename)) {
 		return false;
 	}
@@ -115,9 +132,10 @@ inline bool loadGameState(const char* filename, GameState& outState) {
 	}
 
 	try {
-		const json root = json::parse(content);
+		json root = json::parse(content);
+		bool success = jsonToGameState(root, outState);
 		UnloadFileText(content);
-		return jsonToGameState(root, outState);
+		return success;
 	}
 	catch (...) {
 		UnloadFileText(content);

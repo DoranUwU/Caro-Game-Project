@@ -50,15 +50,25 @@ Ctrl + Shift + B
 ./game.exe
 ```
 
+### 💻 Build manually via Terminal (Optional)
+
+If you prefer using the terminal (PowerShell/CMD), you can compile the game directly from the project root by running:
+
+```powershell
+g++ -std=c++17 src/*.cpp -I. -Ilibs -Ilibs/nlohmann -Ilibs/raylib/include -Llibs/raylib/lib -lraylib -lopengl32 -lgdi32 -lwinmm -o game.exe
+```
+
+Then run the game:
+
+```powershell
+./game.exe
+```
+
 ---
 
 ## ❗ Notes
 
-* No need to compile manually with `g++` commands
-* All include paths and libraries are already configured in:
-
-  * `.vscode/tasks.json`
-  * `.vscode/c_cpp_properties.json`
+* All include paths and libraries are already configured in `tasks.json` for VSCode users.
 
 ---
 

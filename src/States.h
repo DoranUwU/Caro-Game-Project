@@ -5,7 +5,6 @@
 #include "Textures.h"   
 #include "Board.h"     
 
-
 void UpdateMenu(AppContext& ctx);
 void DrawMenu(const AppContext& ctx, const TextureBank& tex);
 
@@ -13,15 +12,18 @@ void UpdateLoadGame(AppContext& ctx);
 void DrawLoadGame(const AppContext& ctx, const TextureBank& tex);
 
 void UpdateModeSelection(AppContext& ctx);
-void DrawModeSelection(const AppContext& ctx, const TextureBank& tex);
+void DrawModeSelection(AppContext& ctx, const TextureBank& tex);
 
 void UpdatePlayerSetup(AppContext& ctx);
-void DrawPlayerSetup(const AppContext& ctx, const TextureBank& tex);
+void DrawPlayerSetup(AppContext& ctx, const TextureBank& tex);
 
 void UpdateGameplay(AppContext& ctx);
 void DrawGameplay(const AppContext& ctx, const TextureBank& tex);
 
 void UpdateOverlay(AppContext& ctx, UIScreen returnTo);
 void DrawOverlay(const AppContext& ctx, const TextureBank& tex, const char* title);
+
+void UpdateDifficulty(AppContext& ctx);
+void DrawDifficulty(AppContext& ctx, const TextureBank& tex);
 
 #endif // STATES_H

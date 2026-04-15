@@ -5,8 +5,6 @@
 
 // ============================================================
 //  TextureBank
-//  Tập trung toàn bộ texture vào một struct.
-//  Load / Unload thông qua 2 hàm helper bên dưới.
 // ============================================================
 struct TextureBank
 {
@@ -34,9 +32,12 @@ struct TextureBank
     Texture2D spriteO;
 
     // --- Characters ---
-    Texture2D spriteKnight;
-    Texture2D spriteMage;
-    Texture2D spriteArcher;
+    Texture2D spriteKnight_L;
+    Texture2D spriteMage_L;
+    Texture2D spriteArcher_L;
+    Texture2D spriteKnight_R;
+    Texture2D spriteMage_R;
+    Texture2D spriteArcher_R;
     Texture2D spriteGoblin;
     Texture2D spriteDragon;
 };

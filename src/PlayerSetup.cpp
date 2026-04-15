@@ -1,6 +1,7 @@
-﻿#include "States.h"
+#include "States.h"
 #include "UI.h"
 #include "TextRenderer.h"
+#include "GameState.h"
 #include <math.h>
 #include <cstring>
 
@@ -58,7 +59,7 @@ void UpdatePlayerSetup(AppContext& ctx)
         }
     }
 
-    // Stage chọn nhân vật
+    // Stage chọn nhân vật — keyboard
     else if (ctx.setupStage == 1 || ctx.setupStage == 3)
     {
         if (keyRight) ctx.selectedChar++;
@@ -78,8 +79,10 @@ void UpdatePlayerSetup(AppContext& ctx)
                     ctx.player2.character = 0;
                     ctx.gameState = GameState();
                     ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
+                    ctx.turnTimer = TURN_TIME;
                     ctx.prevScreen = SCREEN_PLAYER_SETUP;
                     ctx.screen = SCREEN_GAMEPLAY;
+                    ctx.enterGuard = true;
                 }
                 else ctx.setupStage = 2;
             }
@@ -88,14 +91,49 @@ void UpdatePlayerSetup(AppContext& ctx)
                 ctx.player2.character = ctx.selectedChar;
                 ctx.gameState = GameState();
                 ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
+                ctx.turnTimer = TURN_TIME;
                 ctx.prevScreen = SCREEN_PLAYER_SETUP;
                 ctx.screen = SCREEN_GAMEPLAY;
+                ctx.enterGuard = true;
             }
         }
     }
 }
 
-void DrawPlayerSetup(const AppContext& ctx, const TextureBank& tex)
+// Helper: confirm chọn nhân vật 
+static void ConfirmCharacter(AppContext& ctx, int charIdx)
+{
+    ctx.selectedChar = charIdx;
+    if (ctx.setupStage == 1)
+    {
+        ctx.player1.character = charIdx;
+        ctx.selectedChar = 0;
+        if (ctx.playWithBot)
+        {
+            ctx.player2.name = "BOT";
+            ctx.player2.character = 0;
+            ctx.gameState = GameState();
+            ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
+            ctx.turnTimer = TURN_TIME;
+            ctx.prevScreen = SCREEN_PLAYER_SETUP;
+            ctx.screen = SCREEN_GAMEPLAY;
+            ctx.enterGuard = true;
+        }
+        else ctx.setupStage = 2;
+    }
+    else
+    {
+        ctx.player2.character = charIdx;
+        ctx.gameState = GameState();
+        ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
+        ctx.turnTimer = TURN_TIME;
+        ctx.prevScreen = SCREEN_PLAYER_SETUP;
+        ctx.screen = SCREEN_GAMEPLAY;
+        ctx.enterGuard = true;
+    }
+}
+
+void DrawPlayerSetup(AppContext& ctx, const TextureBank& tex)
 {
     DrawFullscreenTexture(tex.originBg);
 
@@ -133,14 +171,29 @@ void DrawPlayerSetup(const AppContext& ctx, const TextureBank& tex)
         int cdy = GetScreenHeight() / 2 - tex.dialogChooseChar.height / 2;
         DrawPixelTextStyled("CHOOSE CHARACTER", 730, 200, 5);
 
-        Texture2D   charSprites[3] = { tex.spriteKnight, tex.spriteMage, tex.spriteArcher };
+        Texture2D   charSprites[3] = { tex.spriteKnight_L, tex.spriteMage_L, tex.spriteArcher_L };
         const char* charNames[3] = { "KNIGHT", "MAGE", "ARCHER" };
-        const int frameSize = 450, spacing = 40;
-        int frameStartX = cdx + 100, frameY = cdy + 400;
+        const int   frameSize = 450, spacing = 40;
+        int         frameStartX = cdx + 100, frameY = cdy + 400;
+
+        Vector2 mouse = GetMousePosition();
 
         for (int i = 0; i < 3; i++)
         {
             int fx = frameStartX + i * (frameSize + spacing), fy = frameY;
+            Rectangle frameRect = { (float)fx, (float)fy, (float)frameSize, (float)frameSize };
+
+            // Hover chuột
+            if (CheckCollisionPointRec(mouse, frameRect))
+                ctx.selectedChar = i;
+
+            // Click chuột
+            if (CheckCollisionPointRec(mouse, frameRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            {
+                ConfirmCharacter(ctx, i);
+                break; 
+            }
+
             bool sel = (i == ctx.selectedChar);
 
             DrawTextureEx(tex.dialogCharFrame, Vector2{ (float)fx, (float)fy },

@@ -23,6 +23,14 @@ inline json gameStateToJson(const GameState& state) {
 	}
 	root["board"] = board;
 
+	// Serialize winLine
+	root["winLineCount"] = state.winLineCount;
+	json winLine = json::array();
+	for (int i = 0; i < state.winLineCount; ++i) {
+		winLine.push_back({ {"row", state.winLine[i].row}, {"column", state.winLine[i].column} });
+	}
+	root["winLine"] = winLine;
+
 	return root;
 }
 
