@@ -3,6 +3,13 @@
 #include <vector>
 #include "GameState.h"
 #include "Constants.h"
+#include "Sound.h"
+
+enum BGMType {
+    BGM_NONE,
+    BGM_MENU,
+    BGM_INGAME
+};
 
 enum UIScreen
 {
@@ -69,6 +76,15 @@ struct AppContext
     // Load Game screen
     int         loadSelectedIndex = 0;
     std::vector<std::string> saveFileList;
+
+    // Music
+    SoundBank* sound;
+    BGMType curBGM;
+    bool hasPlayedWinsfx = false;
+
+    // Volumn của nhạc
+    float musicVolume = 0.5f;
+    float sfxVolume = 0.5f;
 
     AppContext()
         : gameState()
