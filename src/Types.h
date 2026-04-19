@@ -83,8 +83,8 @@ struct AppContext
     bool hasPlayedWinsfx = false;
 
     // Volumn của nhạc
-    float musicVolume = 0.5f;
-    float sfxVolume = 0.5f;
+    float musicVolume;
+    float sfxVolume;
 
     AppContext()
         : gameState()
@@ -107,6 +107,8 @@ struct AppContext
         , difficulty(1)
         , loadSelectedIndex(0)
         , saveFileList()
+        , musicVolume(0.2f)
+        , sfxVolume(0.2f)
     {
     }
 };
