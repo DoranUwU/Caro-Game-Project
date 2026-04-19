@@ -44,6 +44,7 @@ void UpdatePlayerSetup(AppContext& ctx)
 
         if (IsKeyPressed(KEY_ENTER))
         {
+            PlaySfx(ctx.sound->clickSfx);
             if (ctx.setupStage == 0)
             {
                 ctx.player1.name = ctx.currentInput.empty() ? "PLAYER 1" : ctx.currentInput;
@@ -69,6 +70,8 @@ void UpdatePlayerSetup(AppContext& ctx)
 
         if (IsKeyPressed(KEY_ENTER))
         {
+            ctx.hasPlayedWinsfx = false;
+            PlaySfx(ctx.sound->clickSfx);
             if (ctx.setupStage == 1)
             {
                 ctx.player1.character = ctx.selectedChar;

@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <filesystem>
+#include "Sound.h"
 
 static const char* SAVE_FILE = "saves/current_game.json";
 
@@ -218,6 +219,7 @@ void UpdateGameplay(AppContext& ctx)
                 GameState loaded;
                 if (loadGameState(filepath, loaded))
                 {
+                    ctx.hasPlayedWinsfx = false;
                     ctx.gameState = loaded;
                     ctx.turnTimer = TURN_TIME;
                     ctx.saveLoadMsg = "LOADED: " + ctx.saveLoadInput;
@@ -247,6 +249,12 @@ void UpdateGameplay(AppContext& ctx)
 
     if (ctx.gameState.status != GameStatus::ONGOING)
     {
+        if (!ctx.hasPlayedWinsfx) {
+            StopMusicStream(ctx.sound->ingame);
+            PlaySfx(ctx.sound->win);
+            ctx.hasPlayedWinsfx = true;
+        }
+
         if (IsKeyPressed(KEY_ENTER))
             ctx.screen = SCREEN_MENU;
         return;
@@ -289,19 +297,25 @@ void UpdateGameplay(AppContext& ctx)
     // --- Danh bang phim ---
     auto tryMove = [&](int col, int row) {
         GameState next = playMove(ctx.gameState, Position(row, col));
-        if (next.currentPlayer != ctx.gameState.currentPlayer)
+        bool moveApplied = (next.currentPlayer != ctx.gameState.currentPlayer);
+
+        if (moveApplied)
         {
             if (ctx.gameState.currentPlayer == Player::PlayerX)
                 ctx.player1.moveCount++;
             else
                 ctx.player2.moveCount++;
+
             ctx.gameState = next;
             ctx.turnTimer = TURN_TIME;
+            PlaySound(ctx.sound->placeSfx);
         }
-        };
+    };
 
-    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
         tryMove(ctx.cursorX, ctx.cursorY);
+        PlaySound(ctx.sound->placeSfx);
+    }
 
     // --- Cursor theo chuot ---
     {
@@ -495,7 +509,6 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         if (ctx.gameState.status == GameStatus::WIN_X) msg = "X WINS!";
         else if (ctx.gameState.status == GameStatus::WIN_O) msg = "O WINS!";
         else if (ctx.gameState.status == GameStatus::DRAW)  msg = "DRAW!";
-
         // Overlay toi
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
 

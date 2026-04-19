@@ -2,6 +2,7 @@
 #include "UI.h"
 #include "TextRenderer.h"
 #include "Constants.h"
+#include "Sound.h"
 
 //  Reset toàn bộ game state + UI setup trước khi vào PLAYER_SETUP
 static void StartSetup(AppContext& ctx, bool withBot)
@@ -34,8 +35,10 @@ void UpdateModeSelection(AppContext& ctx)
     if (keyLeft || keyRight)
         ctx.selectedMode = !ctx.selectedMode;
 
-    if (IsKeyPressed(KEY_ENTER))
+    if (IsKeyPressed(KEY_ENTER)) {
         StartSetup(ctx, ctx.selectedMode == 1);
+        PlaySfx(ctx.sound->clickSfx);
+    }
 
     if (IsKeyPressed(KEY_ESCAPE))
         ctx.screen = SCREEN_MENU;

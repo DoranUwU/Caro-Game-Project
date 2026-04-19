@@ -3,6 +3,7 @@
 #include "TextRenderer.h"
 #include "Constants.h"
 #include <math.h>
+#include "Sound.h"
 
 struct MenuItem { const char* text; int x; int y; };
 
@@ -32,6 +33,7 @@ void UpdateMenu(AppContext& ctx)
 
     if (IsKeyPressed(KEY_ENTER))
     {
+        PlaySfx(ctx.sound->clickSfx);
         switch (ctx.selectedItem)
         {
         case 0: ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; break;
@@ -53,6 +55,7 @@ void UpdateMenu(AppContext& ctx)
             ctx.selectedItem = i;
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
+                PlaySfx(ctx.sound->clickSfx);
                 if (i == 0) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; }
                 if (i == 1) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOAD_GAME; }
                 if (i == 2) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS; }

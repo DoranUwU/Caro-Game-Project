@@ -150,6 +150,7 @@ void UpdateLoadGame(AppContext& ctx)
                 GameState loaded;
                 if (loadGameState(filepath.c_str(), loaded))
                 {
+                    ctx.hasPlayedWinsfx = false;
                     ctx.gameState = loaded;
                     ctx.cursorX = BOARD_SIZE / 2;
                     ctx.cursorY = BOARD_SIZE / 2;
@@ -170,6 +171,7 @@ void UpdateLoadGame(AppContext& ctx)
         GameState loaded;
         if (loadGameState(filepath.c_str(), loaded))
         {
+            ctx.hasPlayedWinsfx = false;
             ctx.gameState = loaded;
             ctx.cursorX = BOARD_SIZE / 2;
             ctx.cursorY = BOARD_SIZE / 2;

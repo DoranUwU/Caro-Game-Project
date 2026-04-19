@@ -1,21 +1,24 @@
 #include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #include "Types.h"
 #include "Textures.h"
 #include "States.h"
+#include "Sound.h"
 
 static void UpdateGame(AppContext& ctx)
 {
     switch (ctx.screen)
     {
-    case SCREEN_MENU:           UpdateMenu(ctx);                         break;
+    case SCREEN_MENU:           UpdateMenu(ctx); PlayMenuBGM(ctx);      break;
     case SCREEN_LOAD_GAME:      UpdateLoadGame(ctx);                    break;
     case SCREEN_MODE_SELECTION: UpdateModeSelection(ctx);               break;
     case SCREEN_PLAYER_SETUP:   UpdatePlayerSetup(ctx);                 break;
-    case SCREEN_GAMEPLAY:       UpdateGameplay(ctx);                     break;
+    case SCREEN_GAMEPLAY:       UpdateGameplay(ctx);PlayInGameBGM(ctx); break;
     case SCREEN_SETTINGS:       UpdateOverlay(ctx, ctx.prevScreen);     break;
     case SCREEN_HELP:           UpdateOverlay(ctx, SCREEN_MENU);        break;
     case SCREEN_ABOUT:          UpdateOverlay(ctx, SCREEN_MENU);        break;
-    case SCREEN_DIFFICULTY:     UpdateDifficulty(ctx);                   break;
+    case SCREEN_DIFFICULTY:     UpdateDifficulty(ctx);                  break;
     }
 }
 
@@ -43,10 +46,16 @@ static void RunGame()
     TextureBank tex;
     LoadAllTextures(tex);
 
-    AppContext ctx;
+    InitAudioDevice();
+    SoundBank sound;
+    LoadAllSounds(sound);
 
+    AppContext ctx;
+    ctx.sound = &sound;
+    ctx.curBGM = BGM_NONE;
     while (!WindowShouldClose())
     {
+        UpdateCurrentMusic(ctx);
         UpdateGame(ctx);
 
         BeginDrawing();
@@ -54,7 +63,8 @@ static void RunGame()
         DrawGame(ctx, tex);
         EndDrawing();
     }
-
+    UnloadAllSounds(sound);
+    CloseAudioDevice();
     UnloadAllTextures(tex);
     CloseWindow();
 }
