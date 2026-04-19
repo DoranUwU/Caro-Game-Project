@@ -24,3 +24,9 @@ void UnloadAllSounds(SoundBank &sound);
 void PlayMenuBGM(AppContext& ctx);
 void PlayInGameBGM(AppContext& ctx);
 void UpdateCurrentMusic(AppContext& ctx);
+
+void PlaySfx(Sound& sound);
+
+void ChangeBGMVolume(AppContext& ctx);
+void ChangeSfxVolume(AppContext& ctx);
+

@@ -1,6 +1,7 @@
 #include "Sound.h"
 #include "Types.h"
 
+
 void LoadAllSounds(SoundBank& sound) {
     sound.bgm = LoadMusicStream("sound/bgm.mp3");
     sound.ingame = LoadMusicStream("sound/bgm_ingame.mp3");
@@ -23,6 +24,11 @@ void UnloadAllSounds(SoundBank &sound) {
 
 }
 
+void PlaySfx(Sound& sound) {
+    float randomPitch = 0.9f + (float)(GetRandomValue(0, 20)) / 100.0f;
+    SetSoundPitch(sound, randomPitch);
+    PlaySound(sound);
+}
 void PlayMenuBGM(AppContext& ctx) {
     if (ctx.curBGM == BGM_MENU) {
         return;
@@ -55,4 +61,15 @@ void UpdateCurrentMusic(AppContext& ctx) {
             break;
     }
 
+}
+
+void ChangeBGMVolume(AppContext& ctx) {
+    SetMusicVolume(ctx.sound->bgm,ctx.musicVolume);
+    SetMusicVolume(ctx.sound->ingame,ctx.musicVolume);
+}
+
+void ChangeSfxVolume(AppContext& ctx) {
+    SetSoundVolume(ctx.sound->win,ctx.sfxVolume);
+    SetSoundVolume(ctx.sound->clickSfx,ctx.sfxVolume);
+    SetSoundVolume(ctx.sound->placeSfx,ctx.sfxVolume);
 }
