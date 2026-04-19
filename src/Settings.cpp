@@ -150,8 +150,8 @@ void DrawSettingsOverlay(const AppContext& ctx)
                 { 255, 220, 120, 255 });
         };
 
-    DrawToggleRow("BGM  ", s_bgmOn, s_bgmVolume, startY + rowH * 0);
-    DrawToggleRow("SFX  (Sound Effects)", s_sfxOn, s_sfxVolume, startY + rowH * 1);
+    DrawToggleRow("Background Music  ", s_bgmOn, s_bgmVolume, startY + rowH * 0);
+    DrawToggleRow("Sound effects", s_sfxOn, s_sfxVolume, startY + rowH * 1);
     DrawPanelDivider(panel.x + 40, startY + rowH * 2 + 10, panel.width - 80, 70);
 
     // ---- Section header: LANGUAGE ----
