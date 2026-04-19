@@ -1,11 +1,15 @@
 #include "Overlay.h"
 #include "TextRenderer.h"
 #include "Constants.h"
+#include "raygui.h"
+#include "Sound.h"
 #include <math.h>
 #include <cstring>
 
 static bool  s_bgmOn = true;
 static bool  s_sfxOn = true;
+static float s_bgmVolume = 50.0f;
+static float s_sfxVolume = 50.0f;
 static int   s_langIdx = 0;   
 static const char* LANGUAGES[] = { "ENGLISH", "TIENG VIET" };
 static const int   LANG_COUNT = 2;
@@ -20,14 +24,34 @@ void UpdateSettingsOverlay(AppContext& ctx)
 
     // BGM toggle button
     float toggleW = 160, toggleH = 50;
-    Rectangle bgmRect = { cx + 40, startY + rowH * 0 + (rowH - toggleH) / 2, toggleW, toggleH };
-    if (CheckCollisionPointRec(mouse, bgmRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    float rightPadding = 50.0f;
+    float bx = panel.x + panel.width - toggleW - rightPadding;
+    Rectangle bgmRect = { bx, startY + rowH * 0 + (rowH - toggleH) / 2, toggleW, toggleH };
+    if (CheckCollisionPointRec(mouse, bgmRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         s_bgmOn = !s_bgmOn;
+        if (!s_bgmOn) {
+            s_bgmVolume = 0.0f;
+        }
+        else {
+            s_bgmVolume = 50.0f;
+        }
+    }
+    ctx.musicVolume = s_bgmVolume / 100.0f;
 
     // SFX toggle button
-    Rectangle sfxRect = { cx + 40, startY + rowH * 1 + (rowH - toggleH) / 2, toggleW, toggleH };
-    if (CheckCollisionPointRec(mouse, sfxRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    Rectangle sfxRect = { bx, startY + rowH * 1 + (rowH - toggleH) / 2, toggleW, toggleH };
+    if (CheckCollisionPointRec(mouse, sfxRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         s_sfxOn = !s_sfxOn;
+        if (!s_sfxOn) {
+            s_sfxVolume = 0.0f;
+        }
+        else {
+            s_sfxVolume = 50.0f;
+        }
+    }
+    ctx.sfxVolume =  s_sfxVolume / 100.0f;
+    ChangeBGMVolume(ctx);
+    ChangeSfxVolume(ctx);
 
     // Language left/right arrows
     float langY = startY + rowH * 3;
@@ -55,6 +79,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
 
     float rowH = 70.0f;
     float startY = panel.y + 110.0f;
+    
     float cx = panel.x + panel.width / 2.0f;
     float labelX = panel.x + 80.0f;
 
@@ -67,15 +92,17 @@ void DrawSettingsOverlay(const AppContext& ctx)
     }
 
     // Helper
-    auto DrawToggleRow = [&](const char* label, bool isOn, float rowY)
+    auto DrawToggleRow = [&](const char* label, bool isOn,float &soundVolume, float rowY)
         {
             // Label
             DrawPixelText(label, (int)labelX, (int)(rowY + 18), FONT_SCALE_SM, WHITE);
 
             // Toggle button
             float toggleW = 160, toggleH = 50;
-            float bx = cx + 40;
-            float by = rowY + (rowH - toggleH) / 2.0f;
+            float rightPadding = 50.0f;
+            float bx = panel.x + panel.width - toggleW - rightPadding;
+            float by = rowY + (rowH - toggleH) / 2.0f ;
+
             Rectangle btnRect = { bx, by, toggleW, toggleH };
 
             Vector2 mouse = GetMousePosition();
@@ -100,11 +127,31 @@ void DrawSettingsOverlay(const AppContext& ctx)
             DrawPixelText(lbl, (int)(bx + toggleW / 2 - lw / 2),
                 (int)(by + toggleH / 2 - FONT_GLYPH_H * FONT_SCALE_SM / 2),
                 FONT_SCALE_SM, txtCol);
+            // Sound slidebar
+            float sliderW = 360.0f;
+            float sliderH = 30.0f;
+            float sliderX = cx - panel.x / 2.0f;
+            Rectangle soundSliderRect = { sliderX, by, sliderW, sliderH };
+            if (isOn) {
+                GuiSliderBar(soundSliderRect, "", "", &soundVolume, 0.0f, 100.0f);
+            }
+            else {
+                GuiDisable();
+                GuiSliderBar(soundSliderRect, "", "", &soundVolume, 0.0f, 100.0f);
+                GuiEnable();
+            }
+
+            char soundText[16];
+            sprintf(soundText, "%d%%", (int)soundVolume);
+            DrawPixelText(soundText,
+                (int)(sliderX + sliderW + 12),
+                (int)(rowY + 18),
+                FONT_SCALE_SM,
+                { 255, 220, 120, 255 });
         };
 
-    DrawToggleRow("BGM  (Background Music)", s_bgmOn, startY + rowH * 0);
-    DrawToggleRow("SFX  (Sound Effects)", s_sfxOn, startY + rowH * 1);
-
+    DrawToggleRow("BGM  ", s_bgmOn, s_bgmVolume, startY + rowH * 0);
+    DrawToggleRow("SFX  (Sound Effects)", s_sfxOn, s_sfxVolume, startY + rowH * 1);
     DrawPanelDivider(panel.x + 40, startY + rowH * 2 + 10, panel.width - 80, 70);
 
     // ---- Section header: LANGUAGE ----
