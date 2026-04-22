@@ -1,0 +1,68 @@
+#include "AIEval.h"
+
+
+int getPatternScore(int consecutivePieces, int openEnds) {
+    if (consecutivePieces >= 5) return 1e5; //thắng
+    else if (consecutivePieces == 4) {
+        if (openEnds == 2) return 1e4; //4 quân, mở 2 bên, hết cứu
+        if (openEnds == 1) return 1e3; //4 quân, mở 1 bên, còn cứu được
+    }
+    else if (consecutivePieces == 3) {
+        if (openEnds == 2) return 1e3; //3 quân, không block là hẹo
+        if (openEnds == 1) return 1e2; //3 quân, block 1 bên, tạm ổn
+    }
+    else if (consecutivePieces == 2) {
+        if (openEnds == 2) return 1e2; //mấy cái 2 quân này không đáng kể
+        if (openEnds == 1) return 1e1;
+    }
+    return 0; //1 quân hoặc bị block hết
+}
+
+
+int evalBoard(const GameState& state) {
+    int total = 0;
+
+    Position direction[4] = {
+        Direction::South,
+        Direction::East,
+        Direction::Southeast,
+        Direction::Southwest
+    };
+
+    for (int r = 0; r < BOARD_SIZE; r++) {
+        for (int c = 0; c < BOARD_SIZE; c++) {
+            Position currPos(r, c);
+            Player player = getPlayerAt(state.board, currPos);
+
+            if (player == Player::NONE) continue; //skip if empty cell
+
+            for (int i = 0; i < 4; i++) {
+                //find the piece behind curr piece
+                Position prevPos(currPos.row - direction[i].row, currPos.column - direction[i].column);
+
+                if (!isOutsideBound(prevPos) && getPlayerAt(state.board, prevPos) == player) continue;
+
+                int count = 1;
+                Position nextPos = currPos + direction[i];
+
+                while (!isOutsideBound(nextPos) && getPlayerAt(state.board, nextPos) == player) {
+                    count++;
+                    nextPos = nextPos + direction[i];
+                }
+
+                int openEnds = 0;
+
+                //check before/after the current line
+                if (!isOutsideBound(prevPos) && getPlayerAt(state.board, prevPos) == Player::NONE) openEnds++;
+                if (!isOutsideBound(nextPos) && getPlayerAt(state.board, nextPos) == Player::NONE) openEnds++;
+
+                int s = getPatternScore(count, openEnds);
+
+                if (player == Player::PlayerX) total += s;
+                else if (player == Player::PlayerO) total -= s;
+            }
+        }
+    }
+
+    return total;
+}
