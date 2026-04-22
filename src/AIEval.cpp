@@ -1,4 +1,5 @@
 #include "AIEval.h"
+#include "math.h"
 
 
 int getPatternScore(int consecutivePieces, int openEnds) {
@@ -15,7 +16,10 @@ int getPatternScore(int consecutivePieces, int openEnds) {
         if (openEnds == 2) return 1e2; //mấy cái 2 quân này không đáng kể
         if (openEnds == 1) return 1e1;
     }
-    return 0; //1 quân hoặc bị block hết
+    if (consecutivePieces == 1) {
+        if (openEnds == 2) return 1;
+    }
+    return 0;
 }
 
 
@@ -35,6 +39,17 @@ int evalBoard(const GameState& state) {
             Player player = getPlayerAt(state.board, currPos);
 
             if (player == Player::NONE) continue; //skip if empty cell
+
+            int centre = BOARD_SIZE / 2;
+            int dist = std::abs(r - centre) + abs(c - centre);
+            int posScore = 20 - dist;
+
+            if (player == Player::PlayerX) {
+                total += posScore;
+            }
+            else {
+                total -= posScore;
+            }
 
             for (int i = 0; i < 4; i++) {
                 //find the piece behind curr piece

@@ -13,6 +13,13 @@
 #include <filesystem>
 #include "Sound.h"
 #include "Bot.h"
+#include <thread>
+#include <atomic>
+
+// Tạo các biến toàn cục để giao tiếp giữa 2 luồng
+static std::atomic<bool> isBotThinking(false);
+static std::atomic<int> botMoveCol(-1);
+static std::atomic<int> botMoveRow(-1);
 
 static const char* SAVE_FILE = "saves/current_game.json";
 
@@ -152,6 +159,10 @@ static void DrawTimerText(float timeLeft, float time) {
 // ============================================================
 void UpdateGameplay(AppContext& ctx) {
     float dt = GetFrameTime();
+
+    if (dt > 0.1f) {
+        dt = 0.1f;
+    }
 
     if (ctx.enterGuard) {
         ctx.enterGuard = false;
@@ -300,11 +311,41 @@ void UpdateGameplay(AppContext& ctx) {
     }
 
     bool isBotTurn = ctx.playWithBot && (ctx.gameState.currentPlayer == Player::PlayerO);
-
     if (isBotTurn) {
-        int depth = (ctx.difficulty == 1) ? 4 : 1;
-        Position botMove = getBestMove(ctx.gameState, depth);
-        tryMove(botMove.column, botMove.row);
+        // 1. Nếu Bot chưa bắt đầu nghĩ, thì phái nó đi nghĩ
+        if (!isBotThinking && botMoveCol == -1) {
+            isBotThinking = true;
+
+            int searchDepth = (ctx.difficulty == 1) ? 4 : 3;
+            GameState stateCopy = ctx.gameState; // Copy state để ném vào luồng phụ
+
+            // Khởi tạo một Luồng chạy ngầm (Background Thread)
+            std::thread([stateCopy, searchDepth]()
+                {
+                    // Việc tính toán nặng nề xảy ra ở luồng này, không ảnh hưởng game
+                    Position bestMove = getBestMove(stateCopy, searchDepth);
+
+                    // Tính xong, lưu tọa độ lại
+                    botMoveCol = bestMove.column;
+                    botMoveRow = bestMove.row;
+                    isBotThinking = false; // Báo hiệu đã nghĩ xong!
+                }).detach(); // detach() giúp luồng tự chạy độc lập
+        }
+
+        // 2. Nếu Bot đã nghĩ xong (có tọa độ hợp lệ), thực hiện nước đi!
+        if (!isBotThinking && botMoveCol != -1) {
+            tryMove(botMoveCol, botMoveRow);
+
+            // Reset biến để chuẩn bị cho lượt sau
+            botMoveCol = -1;
+            botMoveRow = -1;
+        }
+
+        // 3. Nếu đang trong quá trình nghĩ (isBotThinking == true), 
+        // Lệnh return này sẽ ngăn người chơi thao tác, nhưng Main Loop vẫn vẽ được hình ảnh!
+        if (isBotThinking) {
+            return;
+        }
     }
     else {
         if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {

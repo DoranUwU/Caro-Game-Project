@@ -1,11 +1,7 @@
 #include "AISearch.h"
-#include "AIUtils.h"
-#include <stdlib.h>
-#include <time.h>
 
 //Chặn bot xét nước đi ở các ô quá xa bên ngoài
 MoveList getRelevantMoves(const GameState& state) {
-    srand(time(nullptr)); //gen nước đi
     MoveList l;
     bool occupied = false;
 
@@ -18,8 +14,8 @@ MoveList getRelevantMoves(const GameState& state) {
             if (!isCellEmpty(state.board, currPos)) {
                 occupied = true;
 
-                for (int temp_r = -2; temp_r <= 2; temp_r++) {
-                    for (int temp_c = -2; temp_c <= 2; temp_c++) {
+                for (int temp_r = -1; temp_r <= 1; temp_r++) {
+                    for (int temp_c = -1; temp_c <= 1; temp_c++) {
                         Position adjacent(r + temp_r, c + temp_c);
 
                         if (!isOutsideBound(adjacent) && isCellEmpty(state.board, adjacent)) {
@@ -34,7 +30,7 @@ MoveList getRelevantMoves(const GameState& state) {
     //Nếu bàn cờ trống, chơi random ở trung tâm.
     if (!occupied) {
         int a = 14, b = 16;
-        append(l, Position((rand() % (b - a + 1)) + a, (rand() % (b - a + 1)) + a));//random khoảng 3x3 trung tâm
+        append(l, Position(BOARD_SIZE / 2, BOARD_SIZE / 2));
         return l;
     }
 
@@ -53,42 +49,51 @@ MoveList getRelevantMoves(const GameState& state) {
 Sort điểm của nước đi để chạy alpha-beta prunning hiệu quả 
 -> attack(tạo quân liên tiếp) và defence move(block đối thủ)
 */
+#include <cmath> // Cần thiết để dùng hàm trị tuyệt đối std::abs
+
+// --- PHIÊN BẢN SẮP XẾP SIÊU TỐC ---
 MoveList getOrderedMoves(const GameState& state) {
-    MoveList filtered = getRelevantMoves(state);
+    MoveList rawMoves = getRelevantMoves(state);
 
-    ScoredMove sm[BOARD_SIZE * BOARD_SIZE];
+    ScoredMove scoredMoves[BOARD_SIZE * BOARD_SIZE];
+    int count = rawMoves.count;
+    int center = BOARD_SIZE / 2;
 
-    int count = filtered.count;
-    int colourMul = state.currentPlayer == Player::PlayerX ? 1 : -1;
+    // 1. Chấm điểm các nước đi cực nhanh (Không dùng evaluateBoard nữa)
+    for (int i = 0; i < count; ++i) {
+        Position move = rawMoves.list[i];
 
-    for (int i = 0; i < count; i++) {
-        Position move = filtered.list[i];
+        // Điểm = 20 - khoảng cách tới tâm bàn cờ.
+        // Nước đi nào càng gần tâm sẽ càng được tính toán trước để Alpha-Beta cắt tỉa sớm.
+        int score = 20 - (std::abs(move.row - center) + std::abs(move.column - center));
 
-        GameState nextState = playMove(state, move);
-        int score = colourMul * evalBoard(nextState);
-
-        sm[i] = {move, score};
+        scoredMoves[i] = { move, score };
     }
 
     //insertion sort
-    for (int i = 1; i < count; i++) {
-        ScoredMove k = sm[i];
+    for (int i = 1; i < count; ++i) {
+        ScoredMove key = scoredMoves[i];
         int j = i - 1;
 
-        while (j >= 0 && sm[j].score > k.score) {
-            sm[j + 1] = sm[j];
+        while (j >= 0 && scoredMoves[j].score < key.score) {
+            scoredMoves[j + 1] = scoredMoves[j];
             j--;
         }
 
-        sm[j + 1] = k;
+        scoredMoves[j + 1] = key;
     }
 
-    MoveList ordered;
-    for (int i = 0; i < count; i++) {
-        append(ordered, sm[i].pos);
+    // 3. Trả về danh sách
+    MoveList orderedMoves;
+
+    int MAX_MOVES_TO_CHECK = 6;
+    int limit = (count < MAX_MOVES_TO_CHECK) ? count : MAX_MOVES_TO_CHECK;
+
+    for (int i = 0; i < limit; ++i) {
+        append(orderedMoves, scoredMoves[i].pos);
     }
 
-    return ordered;
+    return orderedMoves;
 }
 
 int negamax(const GameState& state, int depth, int alpha, int beta, int colourMul) {
