@@ -4,6 +4,9 @@
 #include "GameState.h"
 #include "Constants.h"
 #include "Sound.h"
+#include "lang.h"
+
+using namespace std;
 
 enum BGMType {
     BGM_NONE,
@@ -26,7 +29,7 @@ enum UIScreen
 
 struct PlayerInfo
 {
-    std::string name;
+    string name;
     int character = 0;    // 0=knight 1=mage 2=archer
     int moveCount = 0;    // tong so nuoc da danh
     int winCount = 0;    // so van thang
@@ -59,15 +62,15 @@ struct AppContext
     bool        playWithBot = false;
     int         setupStage = 0;
     int         selectedChar = 0;
-    std::string currentInput;
+    string currentInput;
     int         selectedItem = 0;
     int         selectedMode = 0;
     float       turnTimer = TURN_TIME;
 
     // Save / Load dialog
     enum class SaveLoadMode { NONE, SAVING, LOADING } saveLoadMode = SaveLoadMode::NONE;
-    std::string saveLoadInput;
-    std::string saveLoadMsg;
+    string saveLoadInput;
+    string saveLoadMsg;
     float       saveLoadMsgTimer = 0.0f;
 
     bool        enterGuard = false;  
@@ -75,7 +78,7 @@ struct AppContext
 
     // Load Game screen
     int         loadSelectedIndex = 0;
-    std::vector<std::string> saveFileList;
+    vector<string> saveFileList;
 
     // Music
     SoundBank* sound;
@@ -85,6 +88,10 @@ struct AppContext
     // Volumn của nhạc
     float musicVolume;
     float sfxVolume;
+
+    // Ngôn ngữ
+    LanguageBank language;
+    const map<string,string>* curLanguage;
 
     AppContext()
         : gameState()
@@ -109,6 +116,7 @@ struct AppContext
         , saveFileList()
         , musicVolume(0.2f)
         , sfxVolume(0.2f)
+        , curLanguage(&language.langEn)
     {
     }
 };
