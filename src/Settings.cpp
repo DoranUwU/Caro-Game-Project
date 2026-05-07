@@ -22,6 +22,8 @@ void UpdateSettingsOverlay(AppContext& ctx)
     float startY = panel.y + 110.0f;
     float cx = panel.x + panel.width / 2.0f;
 
+    s_langIdx = (ctx.curLanguage == &ctx.language.langVi) ? 1 : 0;
+
     // BGM toggle button
     float toggleW = 160, toggleH = 50;
     float rightPadding = 50.0f;
@@ -59,11 +61,20 @@ void UpdateSettingsOverlay(AppContext& ctx)
     Rectangle arrowR = { cx + 110, langY + (rowH - toggleH) / 2, 50, toggleH };
     if (CheckCollisionPointRec(mouse, arrowL) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
-        s_langIdx--; if (s_langIdx < 0) s_langIdx = LANG_COUNT - 1;
+        s_langIdx--;
+        if (s_langIdx < 0) s_langIdx = LANG_COUNT - 1;
     }
     if (CheckCollisionPointRec(mouse, arrowR) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
-        s_langIdx++; if (s_langIdx >= LANG_COUNT) s_langIdx = 0;
+        s_langIdx++; 
+        if (s_langIdx >= LANG_COUNT) s_langIdx = 0;
+    }
+
+    if (s_langIdx == 0) {
+        ctx.curLanguage = &ctx.language.langEn;
+    }
+    else {
+        ctx.curLanguage = &ctx.language.langVi;
     }
 }
 
@@ -72,7 +83,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle("SETTINGS", glow);
+    DrawOverlayTitle(getText("Settings.title", *ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect();
     DrawClassicPanel(panel, glow);
@@ -86,7 +97,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
     // ---- Section header: AUDIO ----
     {
         int hw = (int)(strlen("AUDIO") * 8 * FONT_SCALE_SM);
-        DrawPixelText("AUDIO", (int)(panel.x + 80), (int)(panel.y + 60),
+        DrawPixelText(getText("Settings.audio", *ctx.curLanguage), (int)(panel.x + 80), (int)(panel.y + 60),
             FONT_SCALE_SM, { 255, 200, 80, 200 });
         DrawPanelDivider(panel.x + 40, panel.y + 95, panel.width - 80, 80);
     }
@@ -122,7 +133,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
             DrawRectangleRec(btnRect, bgCol);
             DrawRectangleLinesEx(btnRect, 2, bdrCol);
 
-            const char* lbl = isOn ? "ON" : "OFF";
+            const char* lbl = isOn ? getText("Settings.on", *ctx.curLanguage) : getText("Settings.off", *ctx.curLanguage);
             int lw = (int)(strlen(lbl) * 8 * FONT_SCALE_SM);
             DrawPixelText(lbl, (int)(bx + toggleW / 2 - lw / 2),
                 (int)(by + toggleH / 2 - FONT_GLYPH_H * FONT_SCALE_SM / 2),
@@ -150,12 +161,12 @@ void DrawSettingsOverlay(const AppContext& ctx)
                 { 255, 220, 120, 255 });
         };
 
-    DrawToggleRow("Background Music  ", s_bgmOn, s_bgmVolume, startY + rowH * 0);
-    DrawToggleRow("Sound effects", s_sfxOn, s_sfxVolume, startY + rowH * 1);
+    DrawToggleRow(getText("Settings.bgm", *ctx.curLanguage), s_bgmOn, s_bgmVolume, startY + rowH * 0);
+    DrawToggleRow(getText("Settings.sfx", *ctx.curLanguage), s_sfxOn, s_sfxVolume, startY + rowH * 1);
     DrawPanelDivider(panel.x + 40, startY + rowH * 2 + 10, panel.width - 80, 70);
 
     // ---- Section header: LANGUAGE ----
-    DrawPixelText("LANGUAGE", (int)(panel.x + 80), (int)(startY + rowH * 2 + 22),
+    DrawPixelText(getText("Settings.language", *ctx.curLanguage), (int)(panel.x + 80), (int)(startY + rowH * 2 + 22),
         FONT_SCALE_SM, { 255, 200, 80, 200 });
 
     // Language selector
@@ -194,7 +205,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
     }
 
     {
-        const char* note = "* Language affects UI text only";
+        const char* note = getText("Settings.note", *ctx.curLanguage);
         int nw = (int)(strlen(note) * 8 * 2);
         DrawPixelText(note, (int)(panel.x + panel.width / 2 - nw / 2),
             (int)(panel.y + panel.height - 50),

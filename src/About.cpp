@@ -10,7 +10,7 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle("ABOUT US", glow);
+    DrawOverlayTitle(getText("About.title",*ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect(0.64f, 0.74f);
     DrawClassicPanel(panel, glow);
@@ -20,13 +20,13 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     float lx = panel.x + 60.0f;
 
     // ---- Instructor ----
-    DrawPixelText("INSTRUCTOR", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("About.instructor",*ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 120, 70);
     curY += 14;
 
     {
-        const char* name = "Mr. Truong Toan Thinh";
+        const char* name = getText("About.instructor_name",*ctx.curLanguage);
         int nw = (int)(strlen(name) * 8 * FONT_SCALE_SM);
         // Icon hình thầy (dùng ký tự giả lập)
         DrawPixelText("*", (int)(lx), (int)curY, FONT_SCALE_SM, { 255, 200, 80, 180 });
@@ -37,7 +37,7 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     curY += 10;
 
     // ---- Team Members ----
-    DrawPixelText("DEVELOPMENT TEAM", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("About.development_team",*ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 120, 70);
     curY += 16;
@@ -49,10 +49,10 @@ void DrawAboutUsOverlay(const AppContext& ctx)
         const char* roleDetail;
     };
 
-    Member team[] = {
-        { "Pham Anh Tuan",  "24120238", "UI",             "Interface & Graphics"    },
-        { "Le Bao Minh",    "24120200", "LOGIC & BOT",    "Game Logic & AI"         },
-        { "Vo Hoang Phuc",  "24120123", "SAVE / SOUND",   "Load Game & Sound FX"    },
+    std::vector<Member> team = {
+        { getText("About.member_1_name",*ctx.curLanguage),  getText("About.member_1_id",*ctx.curLanguage), getText("About.member_1_role",*ctx.curLanguage),  getText("About.member_1_roledetail",*ctx.curLanguage)    },
+        { getText("About.member_2_name",*ctx.curLanguage),  getText("About.member_2_id",*ctx.curLanguage), getText("About.member_2_role",*ctx.curLanguage),  getText("About.member_2_roledetail",*ctx.curLanguage)         },
+        { getText("About.member_3_name",*ctx.curLanguage),  getText("About.member_3_id",*ctx.curLanguage), getText("About.member_3_role",*ctx.curLanguage),  getText("About.member_3_roledetail",*ctx.curLanguage)    }
     };
 
     Color roleColors[] = {
@@ -104,7 +104,7 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     {
         DrawPanelDivider(lx, panel.y + panel.height - 55, panel.width - 120, 50);
 
-        const char* ver = "CARO GAME  v1.0  -  HCMUS  2024";
+        const char* ver = getText("About.version",*ctx.curLanguage);
         int vw = (int)(strlen(ver) * 8 * 2);
         DrawPixelText(ver,
             (int)(panel.x + panel.width / 2 - vw / 2),

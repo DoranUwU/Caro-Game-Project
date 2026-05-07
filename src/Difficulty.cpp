@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include <math.h>
 #include <cstring>
+#include <vector>
 
 // ============================================================
 //  Layout: 2 card trái/phải chiếm phần lớn màn hình
@@ -28,8 +29,7 @@ static void DrawDifficultyCard(
     Texture2D sprite,
     const char* label,
     const char* sublabel,       
-    const char* desc[],         
-    int         descCount,
+    const std::vector<const char*>& desc,
     Rectangle   rect,
     bool        selected,
     bool        hovered,
@@ -147,7 +147,7 @@ static void DrawDifficultyCard(
 
     // --- Mô tả dòng ---
     int dScale = 2;
-    for (int i = 0; i < descCount; i++)
+    for (size_t i = 0; i < desc.size(); i++)
     {
         int dW = (int)(strlen(desc[i]) * (FONT_GLYPH_W + FONT_SPACING) * dScale);
         int dX = (int)(rect.x + rect.width / 2 - dW / 2);
@@ -202,7 +202,7 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     DrawFullscreenTexture(tex.originBg);
 
     // --- Tiêu đề ---
-    const char* title = "SELECT DIFFICULTY";
+    const char* title = getText("Difficulty.select_difficulty", *ctx.curLanguage);
     Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
     int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
     int tX = GetScreenWidth() / 2 - tW / 2;
@@ -237,16 +237,16 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     }
 
     // --- Mô tả EASY ---
-    const char* easyDesc[] = {
-        "Bot moves randomly",
-        "Great for beginners",
-        "Relax and have fun!"
+    std::vector<const char*> easyDesc = {
+        getText("Difficulty.bot_moves_randomly", *ctx.curLanguage),
+        getText("Difficulty.great_for_beginners", *ctx.curLanguage),
+        getText("Difficulty.relax_and_have_fun", *ctx.curLanguage)
     };
     // --- Mô tả HARD ---
-    const char* hardDesc[] = {
-        "Bot looks 4 moves ahead",
-        "Blocks and attacks smart",
-        "Only for the brave!"
+    std::vector<const char*> hardDesc = {
+        getText("Difficulty.bot_looks_4_moves_ahead", *ctx.curLanguage),
+        getText("Difficulty.blocks_and_attacks_smart", *ctx.curLanguage),
+        getText("Difficulty.only_for_the_brave", *ctx.curLanguage)
     };
 
     // --- Accent colors ---
@@ -256,8 +256,9 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     // --- Vẽ 2 card ---
     DrawDifficultyCard(
         tex.spriteGoblin,
-        "EASY", "Beginner Friendly",
-        easyDesc, 3,
+        getText("Difficulty.easy", *ctx.curLanguage),
+        getText("Difficulty.beginner_friendly", *ctx.curLanguage),
+        easyDesc,
         easyRect,
         ctx.difficulty == 0,
         hovEasy && ctx.difficulty != 0,
@@ -265,8 +266,9 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
 
     DrawDifficultyCard(
         tex.spriteDragon,
-        "HARD", "True Challenge",
-        hardDesc, 3,
+        getText("Difficulty.hard", *ctx.curLanguage),
+        getText("Difficulty.true_challenge", *ctx.curLanguage),
+        hardDesc,
         hardRect,
         ctx.difficulty == 1,
         hovHard && ctx.difficulty != 1,
@@ -288,7 +290,7 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
 
     // --- Hint phím ---
     {
-        const char* hint = "A/D or CLICK to select   ENTER to confirm";
+        const char* hint = getText("Difficulty.hint_select_confirm", *ctx.curLanguage);
         int hw = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
         DrawPixelText(hint,
             GetScreenWidth() / 2 - hw / 2,

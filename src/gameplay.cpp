@@ -37,14 +37,14 @@ static Texture2D GetCharTexture(const TextureBank& tex, int charIndex, bool face
     }
 }
 
-static const char* GetCharName(int charIndex)
+static const char* GetCharName(int charIndex, const map<string, string>& langMap)
 {
     switch (charIndex) {
-    case 1:  return "Mage";
-    case 2:  return "Archer";
-    case 3:  return "Goblin";
-    case 4:  return "Dragon";
-    default: return "Knight";
+    case 1:  return getText("Gameplay.mage", langMap);
+    case 2:  return getText("Gameplay.archer", langMap);
+    case 3:  return getText("Gameplay.goblin", langMap);
+    case 4:  return getText("Gameplay.dragon", langMap);
+    default: return getText("Gameplay.knight", langMap);
     }
 }
 
@@ -83,6 +83,7 @@ static void DrawCharacterSide(
     const char* charName,
     int moveCount, int winCount,
     int overrideX,
+    const map<string, string>& langMap,
     int charIndex = 0)
 {
 
@@ -114,10 +115,10 @@ static void DrawCharacterSide(
 
     // Vẽ Move và Win
     char buf[32];
-    snprintf(buf, sizeof(buf), "Move: %d", moveCount);
+    snprintf(buf, sizeof(buf), "%s %d", getText("Gameplay.move_label", langMap), moveCount);
     DrawPixelText(buf, infoX, infoY + 40, FONT_SCALE_SM, WHITE);
 
-    snprintf(buf, sizeof(buf), "Win: %d", winCount);
+    snprintf(buf, sizeof(buf), "%s %d", getText("Gameplay.win_label", langMap), winCount);
     DrawPixelText(buf, infoX, infoY + 70, FONT_SCALE_SM, WHITE);
 }
 
@@ -210,9 +211,9 @@ void UpdateGameplay(AppContext& ctx)
             {
                 std::filesystem::create_directories("saves");
                 if (saveGameState(ctx.gameState, filepath))
-                    ctx.saveLoadMsg = "SAVED: " + ctx.saveLoadInput;
+                    ctx.saveLoadMsg = string(getText("Gameplay.saved_prefix", *ctx.curLanguage)) + ctx.saveLoadInput;
                 else
-                    ctx.saveLoadMsg = "SAVE FAILED!";
+                    ctx.saveLoadMsg = getText("Gameplay.save_failed", *ctx.curLanguage);
             }
             else // LOADING
             {
@@ -222,10 +223,10 @@ void UpdateGameplay(AppContext& ctx)
                     ctx.hasPlayedWinsfx = false;
                     ctx.gameState = loaded;
                     ctx.turnTimer = TURN_TIME;
-                    ctx.saveLoadMsg = "LOADED: " + ctx.saveLoadInput;
+                    ctx.saveLoadMsg = string(getText("Gameplay.loaded_prefix", *ctx.curLanguage)) + ctx.saveLoadInput;
                 }
                 else
-                    ctx.saveLoadMsg = "FILE NOT FOUND!";
+                    ctx.saveLoadMsg = getText("Gameplay.file_not_found", *ctx.curLanguage);
             }
 
             ctx.saveLoadMsgTimer = 2.5f;
@@ -400,14 +401,16 @@ static void DrawSaveLoadDialog(const AppContext& ctx)
         { 200, 170, 80, (unsigned char)(ba / 2) });
 
     // Tiêu đề
-    const char* title = isSave ? "SAVE GAME" : "LOAD GAME";
+    const char* title = isSave
+        ? getText("Gameplay.save_game", *ctx.curLanguage)
+        : getText("Gameplay.load_game", *ctx.curLanguage);
     unsigned char tb = (unsigned char)(200 + glow * 55);
     Color titleCol = { 255, 220, 100, tb };
     int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
     DrawPixelText(title, GetScreenWidth() / 2 - tW / 2, py + 28, FONT_SCALE_LG, titleCol);
 
     // Label hướng dẫn
-    const char* prompt = "Enter filename (no spaces):";
+    const char* prompt = getText("Gameplay.enter_filename_no_spaces", *ctx.curLanguage);
     int pW = (int)(strlen(prompt) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
     DrawPixelText(prompt, GetScreenWidth() / 2 - pW / 2, py + 95, FONT_SCALE_SM,
         { 200, 190, 150, 220 });
@@ -435,7 +438,7 @@ static void DrawSaveLoadDialog(const AppContext& ctx)
     }
 
     // Hint ENTER / ESC
-    const char* hint = "ENTER  Confirm          ESC  Cancel";
+    const char* hint = getText("Gameplay.enter_confirm_esc_cancel", *ctx.curLanguage);
     int hW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
     DrawPixelText(hint, GetScreenWidth() / 2 - hW / 2, py + ph - 34, 2,
         { 150, 140, 100, 160 });
@@ -463,9 +466,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         GetCharTexture(tex, ctx.player1.character, true),
         CHAR_LEFT_X + 70, CHAR_Y + 70,
         p1Turn, t,
-        GetCharName(ctx.player1.character),
+        GetCharName(ctx.player1.character, *ctx.curLanguage),
         ctx.player1.moveCount, ctx.player1.winCount,
         330,
+        *ctx.curLanguage,
         ctx.player1.character
     );
 
@@ -477,9 +481,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         GetCharTexture(tex, p2CharIndex, false),
         CHAR_RIGHT_X + 150, CHAR_Y + 70,
         p2Turn, t,
-        GetCharName(p2CharIndex),
+        GetCharName(p2CharIndex, *ctx.curLanguage),
         ctx.player2.moveCount, ctx.player2.winCount,
         SCREEN_W - 450,
+        *ctx.curLanguage,
         p2CharIndex
     );
 
@@ -491,9 +496,9 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         ctx.cursorX, ctx.cursorY);
 
     // --- Ten nguoi choi ---
-    const std::string& nameL = ctx.player1.name.empty() ? "PLAYER 1" : ctx.player1.name;
+    const std::string& nameL = ctx.player1.name.empty() ? getText("Gameplay.player_1", *ctx.curLanguage) : ctx.player1.name;
     const std::string& nameR = ctx.player2.name.empty()
-        ? (ctx.playWithBot ? "BOT" : "PLAYER 2")
+        ? (ctx.playWithBot ? getText("Gameplay.bot", *ctx.curLanguage) : getText("Gameplay.player_2", *ctx.curLanguage))
         : ctx.player2.name;
     DrawPixelText(nameL.c_str(), HUD_PLAYER1_X + 40, HUD_Y, FONT_SCALE_MD, WHITE);
     DrawPixelText(nameR.c_str(), HUD_PLAYER2_X, HUD_Y, FONT_SCALE_MD, WHITE);
@@ -506,9 +511,9 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     if (ctx.gameState.status != GameStatus::ONGOING)
     {
         const char* msg = "";
-        if (ctx.gameState.status == GameStatus::WIN_X) msg = "X WINS!";
-        else if (ctx.gameState.status == GameStatus::WIN_O) msg = "O WINS!";
-        else if (ctx.gameState.status == GameStatus::DRAW)  msg = "DRAW!";
+        if (ctx.gameState.status == GameStatus::WIN_X) msg = getText("Gameplay.x_wins", *ctx.curLanguage);
+        else if (ctx.gameState.status == GameStatus::WIN_O) msg = getText("Gameplay.o_wins", *ctx.curLanguage);
+        else if (ctx.gameState.status == GameStatus::DRAW)  msg = getText("Gameplay.draw", *ctx.curLanguage);
         // Overlay toi
         DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
 
@@ -555,7 +560,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         DrawPixelText(msg, GetScreenWidth() / 2 - msgW / 2, 150,
             FONT_SCALE_XL, GOLD);
 
-        const char* hint = "Press ENTER or click HOME to return";
+        const char* hint = getText("Gameplay.press_enter_or_click_home_to_return", *ctx.curLanguage);
         int hintW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
         DrawPixelText(hint,
             GetScreenWidth() / 2 - hintW / 2,
@@ -576,7 +581,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
     int barH = 30;
     DrawRectangle(0, GetScreenHeight() - barH,
         GetScreenWidth(), barH, { 0,0,0,200 });
-    DrawPixelText("L  SAVE                                        T  LOAD",
+    DrawPixelText(getText("Gameplay.l_save_t_load", *ctx.curLanguage),
         700, GetScreenHeight() - 30, FONT_SCALE_SM - 1, WHITE);
 
     // --- Thong bao ket qua save/load ---

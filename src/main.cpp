@@ -5,6 +5,8 @@
 #include "Textures.h"
 #include "States.h"
 #include "Sound.h"
+#include "Lang.h"
+#include "TextRenderer.h"
 
 static void UpdateGame(AppContext& ctx)
 {
@@ -31,9 +33,9 @@ static void DrawGame(AppContext& ctx, const TextureBank& tex)
     case SCREEN_MODE_SELECTION: DrawModeSelection(ctx, tex);            break;
     case SCREEN_PLAYER_SETUP:   DrawPlayerSetup(ctx, tex);              break;
     case SCREEN_GAMEPLAY:       DrawGameplay(ctx, tex);                  break;
-    case SCREEN_SETTINGS:       DrawOverlay(ctx, tex, "SETTINGS");      break;
-    case SCREEN_HELP:           DrawOverlay(ctx, tex, "HELP");          break;
-    case SCREEN_ABOUT:          DrawOverlay(ctx, tex, "ABOUT US");      break;
+    case SCREEN_SETTINGS:       DrawOverlay(ctx, tex, getText("Menu.settings", *ctx.curLanguage)); break;
+    case SCREEN_HELP:           DrawOverlay(ctx, tex, getText("Menu.help", *ctx.curLanguage));     break;
+    case SCREEN_ABOUT:          DrawOverlay(ctx, tex, getText("Menu.about", *ctx.curLanguage));    break;
     case SCREEN_DIFFICULTY:     DrawDifficulty(ctx, tex);                break;
     }
 }
@@ -46,11 +48,19 @@ static void RunGame()
     TextureBank tex;
     LoadAllTextures(tex);
 
+    // Initialize pixel font + unicode fallback
+    InitTextRenderer();
+
     InitAudioDevice();
     SoundBank sound;
     LoadAllSounds(sound);
 
+    LanguageBank lang;
+    loadAllLanguage(lang);
+    
     AppContext ctx;
+    ctx.language = lang;
+    ctx.curLanguage = &ctx.language.langEn;
     ctx.sound = &sound;
     ctx.curBGM = BGM_NONE;
     while (!WindowShouldClose())
@@ -66,6 +76,7 @@ static void RunGame()
     UnloadAllSounds(sound);
     CloseAudioDevice();
     UnloadAllTextures(tex);
+    UnloadTextRenderer();
     CloseWindow();
 }
 

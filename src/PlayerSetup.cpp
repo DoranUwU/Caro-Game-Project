@@ -4,6 +4,7 @@
 #include "GameState.h"
 #include <math.h>
 #include <cstring>
+#include <vector>
 
 void UpdatePlayerSetup(AppContext& ctx)
 {
@@ -47,13 +48,13 @@ void UpdatePlayerSetup(AppContext& ctx)
             PlaySfx(ctx.sound->clickSfx);
             if (ctx.setupStage == 0)
             {
-                ctx.player1.name = ctx.currentInput.empty() ? "PLAYER 1" : ctx.currentInput;
+                ctx.player1.name = ctx.currentInput.empty() ? getText("Gameplay.player_1", *ctx.curLanguage) : ctx.currentInput;
                 ctx.currentInput.clear();
                 ctx.setupStage = 1;
             }
             else
             {
-                ctx.player2.name = ctx.currentInput.empty() ? "PLAYER 2" : ctx.currentInput;
+                ctx.player2.name = ctx.currentInput.empty() ? getText("Gameplay.player_2", *ctx.curLanguage) : ctx.currentInput;
                 ctx.currentInput.clear();
                 ctx.setupStage = 3;
             }
@@ -78,7 +79,7 @@ void UpdatePlayerSetup(AppContext& ctx)
                 ctx.selectedChar = 0;
                 if (ctx.playWithBot)
                 {
-                    ctx.player2.name = "BOT";
+                    ctx.player2.name = getText("PlayerSetup.bot", *ctx.curLanguage);
                     ctx.player2.character = 0;
                     ctx.gameState = GameState();
                     ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
@@ -113,7 +114,7 @@ static void ConfirmCharacter(AppContext& ctx, int charIdx)
         ctx.selectedChar = 0;
         if (ctx.playWithBot)
         {
-            ctx.player2.name = "BOT";
+            ctx.player2.name = getText("PlayerSetup.bot", *ctx.curLanguage);
             ctx.player2.character = 0;
             ctx.gameState = GameState();
             ctx.cursorX = ctx.cursorY = BOARD_SIZE / 2;
@@ -146,9 +147,11 @@ void DrawPlayerSetup(AppContext& ctx, const TextureBank& tex)
     if (ctx.setupStage == 0 || ctx.setupStage == 2)
     {
         DrawTexture(tex.dialogInputName, dialogX, dialogY, WHITE);
-        DrawPixelText("OK", dialogX + 730, dialogY + 610, 5, WHITE);
+        DrawPixelText(getText("PlayerSetup.ok", *ctx.curLanguage), dialogX + 730, dialogY + 610, 5, WHITE);
 
-        const char* label = (ctx.setupStage == 0) ? "PLAYER 1 NAME" : "PLAYER 2 NAME";
+        const char* label = (ctx.setupStage == 0)
+            ? getText("PlayerSetup.player_1_name", *ctx.curLanguage)
+            : getText("PlayerSetup.player_2_name", *ctx.curLanguage);
         DrawPixelText(label, dialogX + 580, dialogY + 310, 5, WHITE);
         DrawPixelText(ctx.currentInput.c_str(), dialogX + 470, dialogY + 470, 6, BLACK);
 
@@ -172,10 +175,14 @@ void DrawPlayerSetup(AppContext& ctx, const TextureBank& tex)
 
         int cdx = GetScreenWidth() / 2 - tex.dialogChooseChar.width / 2;
         int cdy = GetScreenHeight() / 2 - tex.dialogChooseChar.height / 2;
-        DrawPixelTextStyled("CHOOSE CHARACTER", 730, 200, 5);
+        DrawPixelTextStyled(getText("PlayerSetup.choose_character", *ctx.curLanguage), 730, 200, 5);
 
         Texture2D   charSprites[3] = { tex.spriteKnight_L, tex.spriteMage_L, tex.spriteArcher_L };
-        const char* charNames[3] = { "KNIGHT", "MAGE", "ARCHER" };
+        std::vector<const char*> charNames = {
+            getText("PlayerSetup.knight", *ctx.curLanguage),
+            getText("PlayerSetup.mage", *ctx.curLanguage),
+            getText("PlayerSetup.archer", *ctx.curLanguage)
+        };
         const int   frameSize = 450, spacing = 40;
         int         frameStartX = cdx + 100, frameY = cdy + 400;
 

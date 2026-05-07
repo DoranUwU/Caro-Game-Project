@@ -100,7 +100,7 @@ void DrawOverlay(const AppContext& ctx, const TextureBank& tex, const char* titl
     DrawFullscreenTexture(tex.originBg);
 
     // Nội dung theo màn hình
-    if (ctx.screen == SCREEN_SETTINGS) DrawSettingsOverlay(ctx);
+    if (ctx.screen == SCREEN_SETTINGS)      DrawSettingsOverlay(ctx);
     else if (ctx.screen == SCREEN_HELP)     DrawHelpOverlay(ctx);
     else if (ctx.screen == SCREEN_ABOUT)    DrawAboutUsOverlay(ctx);
 
