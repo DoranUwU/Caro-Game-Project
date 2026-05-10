@@ -58,7 +58,7 @@ void DrawModeSelection(AppContext& ctx, const TextureBank& tex)
     int dialogY = GetScreenHeight() / 2 - tex.dialogModeGame.height / 2;
     DrawTexture(tex.dialogModeGame, dialogX, dialogY, WHITE);
 
-    DrawPixelTextStyled("MODE GAME", dialogX + 610, dialogY + 170, 6);
+    DrawPixelTextStyled(getText("Mode.mode_game",*ctx.curLanguage), dialogX + 610, dialogY + 170, 6);
 
     Color pvpColor = (ctx.selectedMode == 0) ? YELLOW : WHITE;
     Color pveColor = (ctx.selectedMode == 1) ? YELLOW : WHITE;

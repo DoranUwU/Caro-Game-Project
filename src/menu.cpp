@@ -9,12 +9,12 @@ struct MenuItem { const char* text; int x; int y; };
 
 static const MenuItem menuItems[] =
 {
-    { "Menu.new_game",  1320, 185 },
-    { "Menu.load_game", 1300, 320 },
-    { "Menu.settings",  1310, 450 },
-    { "Menu.help",      1380, 580 },
-    { "Menu.about_us",  1320, 710 },
-    { "Menu.exit",      1380, 830 }
+    { "Menu.new_game",  1240, 185 },
+    { "Menu.load_game", 1240, 320 },
+    { "Menu.settings",  1240, 450 },
+    { "Menu.help",      1240, 580 },
+    { "Menu.about_us",  1240, 710 },
+    { "Menu.exit",      1240, 830 }
 };
 static const int itemCount = (int)(sizeof(menuItems) / sizeof(menuItems[0]));
 
