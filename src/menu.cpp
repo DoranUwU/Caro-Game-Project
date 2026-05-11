@@ -1,4 +1,4 @@
-#include "States.h"
+﻿#include "States.h"
 #include "UI.h"
 #include "TextRenderer.h"
 #include "Constants.h"
@@ -63,10 +63,6 @@ void UpdateMenu(AppContext& ctx)
             if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
             {
                 if (i == 0) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_MODE_SELECTION; }
-                if (i == 1) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_LOAD_GAME; }
-                if (i == 2) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_SETTINGS; }
-                if (i == 3) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_HELP; }
-                if (i == 4) { ctx.prevScreen = SCREEN_MENU; ctx.screen = SCREEN_ABOUT; }
                 if (i == 5) { CloseWindow(); }
             }
         }

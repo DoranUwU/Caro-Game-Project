@@ -1,96 +1,49 @@
-#pragma once
+﻿#pragma once
 #include <string>
-#include <vector>
 #include "GameState.h"
-#include "Constants.h"
 
 enum UIScreen
 {
     SCREEN_MENU,
+    SCREEN_LOAD_GAME,
     SCREEN_MODE_SELECTION,
     SCREEN_PLAYER_SETUP,
     SCREEN_GAMEPLAY,
     SCREEN_SETTINGS,
     SCREEN_HELP,
-    SCREEN_ABOUT,
-    SCREEN_LOAD_GAME,
-    SCREEN_DIFFICULTY
+    SCREEN_ABOUT
 };
 
 struct PlayerInfo
 {
     std::string name;
-    int character = 0;    // 0=knight 1=mage 2=archer
-    int moveCount = 0;    // tong so nuoc da danh
-    int winCount = 0;    // so van thang
-
-    // Reset match-specific data (called between games)
-    void ResetMatchData()
-    {
-        moveCount = 0;
-    }
-
-    // Reset all player data
-    void ResetAll()
-    {
-        name.clear();
-        character = 0;
-        moveCount = 0;
-        winCount = 0;
-    }
+    int character = 0;   // 0 = knight, 1 = mage, 2 = archer
 };
 
 struct AppContext
 {
-    GameState   gameState;
-    int         cursorX = 7;
-    int         cursorY = 7;
-    UIScreen    screen = SCREEN_MENU;
-    UIScreen    prevScreen = SCREEN_MENU;
-    PlayerInfo  player1;
-    PlayerInfo  player2;
-    bool        playWithBot = false;
+    // Game logic — Board + currentPlayer + status nằm trong GameState
+    GameState gameState;
+
+    // Cursor UI
+    int cursorX = 7;
+    int cursorY = 7;
+
+    // State machine màn hình
+    UIScreen screen = SCREEN_MENU;
+    UIScreen prevScreen = SCREEN_MENU;
+
+    // Thông tin hiển thị player
+    PlayerInfo player1;
+    PlayerInfo player2;
+    bool       playWithBot = false;
+
+    // Setup flow
     int         setupStage = 0;
     int         selectedChar = 0;
     std::string currentInput;
-    int         selectedItem = 0;
-    int         selectedMode = 0;
-    float       turnTimer = TURN_TIME;
 
-    // Save / Load dialog
-    enum class SaveLoadMode { NONE, SAVING, LOADING } saveLoadMode = SaveLoadMode::NONE;
-    std::string saveLoadInput;
-    std::string saveLoadMsg;
-    float       saveLoadMsgTimer = 0.0f;
-
-    bool        enterGuard = false;  
-    int         difficulty = 1;       
-
-    // Load Game screen
-    int         loadSelectedIndex = 0;
-    std::vector<std::string> saveFileList;
-
-    AppContext()
-        : gameState()
-        , cursorX(7)
-        , cursorY(7)
-        , screen(SCREEN_MENU)
-        , prevScreen(SCREEN_MENU)
-        , playWithBot(false)
-        , setupStage(0)
-        , selectedChar(0)
-        , currentInput()
-        , selectedItem(0)
-        , selectedMode(0)
-        , turnTimer(TURN_TIME)
-        , saveLoadMode(SaveLoadMode::NONE)
-        , saveLoadInput()
-        , saveLoadMsg()
-        , saveLoadMsgTimer(0.0f)
-        , enterGuard(false)
-        , difficulty(1)
-        , loadSelectedIndex(0)
-        , saveFileList()
-    {
-    }
+    // Menu selection
+    int selectedItem = 0;
+    int selectedMode = 0;
 };

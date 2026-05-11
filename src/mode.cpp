@@ -7,22 +7,16 @@
 static void StartSetup(AppContext& ctx, bool withBot)
 {
     ctx.playWithBot = withBot;
-    ctx.gameState = GameState();
+    ctx.gameState = GameState();   // reset board, currentPlayer, status
     ctx.player1.name.clear();
     ctx.player2.name.clear();
-    ctx.player1.moveCount = 0;
-    ctx.player2.moveCount = 0;
     ctx.currentInput.clear();
     ctx.setupStage = 0;
     ctx.selectedChar = 0;
     ctx.cursorX = BOARD_SIZE / 2;
     ctx.cursorY = BOARD_SIZE / 2;
     ctx.prevScreen = SCREEN_MODE_SELECTION;
-
-    if (withBot)
-        ctx.screen = SCREEN_DIFFICULTY;   // PVE: chọn độ khó trước
-    else
-        ctx.screen = SCREEN_PLAYER_SETUP; // PVP: vào setup luôn
+    ctx.screen = SCREEN_PLAYER_SETUP;
 }
 
 //  UpdateModeSelection
@@ -32,7 +26,7 @@ void UpdateModeSelection(AppContext& ctx)
     bool keyRight = IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D);
 
     if (keyLeft || keyRight)
-        ctx.selectedMode = !ctx.selectedMode;
+        ctx.selectedMode = !ctx.selectedMode; 
 
     if (IsKeyPressed(KEY_ENTER))
         StartSetup(ctx, ctx.selectedMode == 1);
@@ -47,7 +41,7 @@ void UpdateModeSelection(AppContext& ctx)
 }
 
 //  DrawModeSelection
-void DrawModeSelection(AppContext& ctx, const TextureBank& tex)
+void DrawModeSelection(const AppContext& ctx, const TextureBank& tex)
 {
     DrawFullscreenTexture(tex.originBg);
 

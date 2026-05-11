@@ -12,18 +12,12 @@ enum class GameStatus {
     WIN_O
 };
 
-constexpr int MAX_WIN_LINE = 10;
-
 struct GameState {
     Board board = Board();
     Player currentPlayer = Player::PlayerX;
     GameStatus status = GameStatus::ONGOING;
 
-    Position lastMove = Position(-1, -1);
-
-    Position winLine[MAX_WIN_LINE];
-    int winLineCount = 0;
+    Position lastMove = Position(-1, -1); // Track the last move for win checking
 };
-
 
 #endif // GAMESTATE_H

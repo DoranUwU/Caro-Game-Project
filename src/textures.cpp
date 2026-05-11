@@ -1,4 +1,4 @@
-﻿#include "Textures.h"
+#include "Textures.h"
 
 void LoadAllTextures(TextureBank& tex)
 {
@@ -21,12 +21,9 @@ void LoadAllTextures(TextureBank& tex)
     tex.spriteX = LoadTexture("assets/sprite_X.png");
     tex.spriteO = LoadTexture("assets/sprite_O.png");
 
-    tex.spriteKnight_L = LoadTexture("assets/knight_L.png");
-    tex.spriteMage_L = LoadTexture("assets/mage_L.png");
-    tex.spriteArcher_L = LoadTexture("assets/archer_L.png");
-    tex.spriteKnight_R = LoadTexture("assets/knight_R.png");
-    tex.spriteMage_R = LoadTexture("assets/mage_R.png");
-    tex.spriteArcher_R = LoadTexture("assets/archer_R.png");
+    tex.spriteKnight = LoadTexture("assets/knight.png");
+    tex.spriteMage = LoadTexture("assets/mage.png");
+    tex.spriteArcher = LoadTexture("assets/archer.png");
     tex.spriteGoblin = LoadTexture("assets/goblin.png");
     tex.spriteDragon = LoadTexture("assets/dragon.png");
 }
@@ -52,13 +49,9 @@ void UnloadAllTextures(TextureBank& tex)
     UnloadTexture(tex.spriteX);
     UnloadTexture(tex.spriteO);
 
-
-    UnloadTexture(tex.spriteKnight_L);
-    UnloadTexture(tex.spriteKnight_R);
-    UnloadTexture(tex.spriteMage_L);
-    UnloadTexture(tex.spriteMage_R);
-    UnloadTexture(tex.spriteArcher_L);
-    UnloadTexture(tex.spriteArcher_R);
+    UnloadTexture(tex.spriteKnight);
+    UnloadTexture(tex.spriteMage);
+    UnloadTexture(tex.spriteArcher);
     UnloadTexture(tex.spriteGoblin);
     UnloadTexture(tex.spriteDragon);
 }

@@ -35,15 +35,8 @@ void DrawBackButton(Texture2D normalTex, Texture2D hoverTex,
     hovered = CheckCollisionPointRec(mouse, rect);
     clicked = hovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 
-    float glow = hovered
-        ? (sinf((float)GetTime() * 6.0f) + 1.0f) / 2.0f
-        : 0.0f;
-    unsigned char bright = hovered
-        ? (unsigned char)(210 + glow * 45)
-        : 150;
-    Color tint = { bright, bright, bright, 255 };
-
-    DrawTextureEx(normalTex, Vector2{ BTN_BACK_X, BTN_BACK_Y }, 0, scale, tint);
+    Texture2D tex = hovered ? hoverTex : normalTex;
+    DrawTextureEx(tex, Vector2{ BTN_BACK_X, BTN_BACK_Y }, 0, scale, WHITE);
 }
 
 //  DrawSettingButton
@@ -51,10 +44,10 @@ void DrawSettingButton(Texture2D normalTex, Texture2D hoverTex,
     int screenW, bool& hovered, bool& clicked)
 {
     int bw = normalTex.width, bh = normalTex.height;
-    float scale = (bw > BTN_MAX_W) ? 180.0f / bw : 1.0f;
+    float scaleNormal = (bw > BTN_MAX_W) ? 180.0f / bw : 1.0f;
 
-    int dw = (int)(bw * scale);
-    int dh = (int)(bh * scale);
+    int dw = (int)(bw * scaleNormal);
+    int dh = (int)(bh * scaleNormal);
     int bx = screenW - dw - 30;
     int by = 30;
 
@@ -64,15 +57,28 @@ void DrawSettingButton(Texture2D normalTex, Texture2D hoverTex,
     hovered = CheckCollisionPointRec(mouse, rect);
     clicked = hovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 
-    float glow = hovered
-        ? (sinf((float)GetTime() * 6.0f) + 1.0f) / 2.0f
-        : 0.0f;
-    unsigned char bright = hovered
-        ? (unsigned char)(210 + glow * 45)
-        : 150;
-    Color tint = { bright, bright, bright, 255 };
+    Texture2D tex;
+    float     scale;
 
-    DrawTextureEx(normalTex, Vector2{ (float)bx, (float)by }, 0.0f, scale, tint);
+    if (!hovered)
+    {
+        tex = normalTex;
+        scale = scaleNormal;
+    }
+    else
+    {
+        tex = hoverTex;
+        float sx = (float)dw / hoverTex.width;
+        float sy = (float)dh / hoverTex.height;
+        scale = fminf(sx, sy);
+    }
+
+    float drawW = tex.width * scale;
+    float drawH = tex.height * scale;
+    float dx = bx + (dw - drawW) / 2.0f;
+    float dy = by + (dh - drawH) / 2.0f;
+
+    DrawTextureEx(tex, Vector2{ dx, dy }, 0.0f, scale, WHITE);
 }
 
 //  DrawOverlayScreen

@@ -1,11 +1,7 @@
-#include "States.h"
+﻿#include "States.h"
 #include "UI.h"
-#include "TextRenderer.h"
-#include "Constants.h"
-#include "Overlay.h"
-#include <math.h>
-#include <cstring>
 
+<<<<<<< HEAD
 // ============================================================
 //  Shared helpers (panel, decorations) — phong cách Load Game
 // ============================================================
@@ -55,6 +51,10 @@ void DrawPanelDivider(float x, float y, float w, float alpha)
 // ============================================================
 //  UpdateOverlay
 // ============================================================
+=======
+//  UpdateOverlay — dùng chung cho Settings / Help / About
+//  returnTo: UIScreen sẽ quay về khi nhấn Back / ESC
+>>>>>>> parent of 601d1bb (add settings, about, help, effects, difficulty mode)
 void UpdateOverlay(AppContext& ctx, UIScreen returnTo)
 {
     Vector2   mouse = GetMousePosition();
@@ -63,32 +63,13 @@ void UpdateOverlay(AppContext& ctx, UIScreen returnTo)
         && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 
     if (backClicked || IsKeyPressed(KEY_ESCAPE))
-    {
         ctx.screen = returnTo;
-        return;
-    }
-
-    // ---- Settings: xử lý toggle / chọn ngôn ngữ ----
-    if (ctx.screen == SCREEN_SETTINGS)
-    {
-        UpdateSettingsOverlay(ctx);
-    }
 }
 
-// ============================================================
-//  DrawOverlay  (entry point từ main dispatch)
-// ============================================================
+//  DrawOverlay
 void DrawOverlay(const AppContext& ctx, const TextureBank& tex, const char* title)
 {
-    // Background
-    DrawFullscreenTexture(tex.originBg);
-
-    // Nội dung theo màn hình
-    if (ctx.screen == SCREEN_SETTINGS) DrawSettingsOverlay(ctx);
-    else if (ctx.screen == SCREEN_HELP)     DrawHelpOverlay(ctx);
-    else if (ctx.screen == SCREEN_ABOUT)    DrawAboutUsOverlay(ctx);
-
-    // Nút Back (luôn có)
-    bool hovered, clicked;
-    DrawBackButton(tex.buttonBackNormal, tex.buttonBackHover, hovered, clicked);
+    DrawOverlayScreen(tex.originBg, title,
+        tex.buttonBackNormal,
+        tex.buttonBackHover);
 }
