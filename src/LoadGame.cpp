@@ -195,8 +195,8 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
     int         tW = (int)(strlen(title) * 8 *  FONT_SCALE_XL);
     int         tX = GetScreenWidth() / 2 - tW / 2;
 
-    DrawPixelText(title, tX + 4, PANEL_TITLE_Y + 4,  FONT_SCALE_XL, { 0, 0, 0, 160 });
-    DrawPixelText(title, tX, PANEL_TITLE_Y,  FONT_SCALE_XL, titleCol);
+    DrawPixelText(title, 760, PANEL_TITLE_Y + 4,  FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 764, PANEL_TITLE_Y,  FONT_SCALE_XL, titleCol);
 
     // --- Đường kẻ dưới tiêu đề ---
     int lineY = PANEL_TITLE_Y +  FONT_SCALE_XL * 9 + 10;
@@ -372,7 +372,7 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
         Color btnTCol = { 255, 220, 100, (unsigned char)(200 + btnGlow * 55) };
         int lblW = (int)(strlen(btnLabel) * 8 * 5);
         DrawPixelText(btnLabel,
-            (int)(btnX + btnW / 2 - lblW / 2),
+            900,
             (int)(btnY + btnH / 2 - 5 * 4),
             5, btnTCol);
 

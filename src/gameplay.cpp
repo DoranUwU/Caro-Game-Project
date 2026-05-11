@@ -48,32 +48,6 @@ static const char* GetCharName(int charIndex)
 }
 
 // ============================================================
-//  DrawTurnTriangle
-// ============================================================
-static void DrawTurnTriangle(int cx, int tipY, float time)
-{
-    int offsetY = (int)(sinf(time * BOUNCE_SPEED) * BOUNCE_AMP);
-    int ty = tipY + offsetY;      
-    int by = ty - ARROW_H;        
-
-    Vector2 top_left  = { (float)(cx - ARROW_W), (float)by };
-    Vector2 top_right = { (float)(cx + ARROW_W), (float)by };
-    Vector2 bottom    = { (float)cx,             (float)ty };
-
-    // Bong (dich xuong phai 2px)
-    Vector2 sl = { top_left.x  + 2, top_left.y  + 2 };
-    Vector2 sr = { top_right.x + 2, top_right.y + 2 };
-    Vector2 sb = { bottom.x    + 2, bottom.y    + 2 };
-    DrawTriangle(sl, sb, sr, { 0, 0, 0, 80 });
-
-    // Than mui ten mau vang
-    DrawTriangle(top_left, bottom, top_right, YELLOW);
-
-    // Vien den mong
-    DrawTriangleLines(top_left, bottom, top_right, BLACK);
-}
-
-// ============================================================
 //  DrawCharacterSide
 // ============================================================
 static void DrawCharacterSide(
@@ -148,8 +122,8 @@ static void DrawTimerText(float timeLeft, float time)
         ? Color{ 255, 80, 80, (unsigned char)(200 + glow * 55) }
     : Color{ 255, 215, 40, (unsigned char)(210 + glow * 45) };
 
-    DrawPixelText(buf, tx + 2, ty + 2 + 50, tScale, { 0, 0, 0, 130 });
-    DrawPixelText(buf, tx, ty + 50, tScale, col);
+    DrawPixelText(buf, tx + 2, ty + 2 + 40, tScale, { 0, 0, 0, 130 });
+    DrawPixelText(buf, tx, ty + 40, tScale, col);
 }
 
 // ============================================================

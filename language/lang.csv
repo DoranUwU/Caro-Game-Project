@@ -1,0 +1,114 @@
+ITEM,ENGLISH,VIETNAMESE
+Menu.new_game,NEW GAME,BẮT ĐẦU
+Menu.load_game,LOAD GAME,TIẾP TỤC
+Menu.settings,SETTINGS,CÀI ĐẶT
+Menu.help,HELP,HỖ TRỢ
+Menu.about_us,ABOUT US,GIỚI THIỆU
+Menu.exit,EXIT,THOÁT
+Mode.mode_game,MODE GAME,CHẾ ĐỘ CHƠI
+Mode.pvp,PVP,BẠN
+Mode.pve,PVE,MÁY
+Difficulty.select_difficulty,SELECT DIFFICULTY,CHỌN ĐỘ KHÓ
+Difficulty.easy,EASY,DỄ
+Difficulty.beginner_friendly,Beginner Friendly,Phù hợp cho người mới
+Difficulty.bot_moves_randomly,Bot moves randomly,Máy đi ngẫu nhiên
+Difficulty.great_for_beginners,Great for beginners,Rất hợp cho khởi đầu
+Difficulty.relax_and_have_fun,Relax and have fun!,Thư giãn và tận hưởng!
+Difficulty.hard,HARD,KHÓ
+Difficulty.true_challenge,True Challenge,Thử thách thực sự
+Difficulty.bot_looks_4_moves_ahead,Bot looks 4 moves ahead,Máy nhìn trước 4 nước
+Difficulty.blocks_and_attacks_smart,Blocks and attacks smart,Cản phá và tấn công thông minh
+Difficulty.only_for_the_brave,Only for the brave!,Chỉ dành cho người gan dạ!
+Difficulty.vs,VS,VS
+Difficulty.hint_select_confirm,A/D or CLICK to select ENTER to confirm,A/D hoặc CLICK để chọn ENTER để xác nhận
+PlayerSetup.ok,OK,XONG
+PlayerSetup.player_1_name,PLAYER 1 NAME,TÊN NGƯỜI CHƠI 1
+PlayerSetup.player_2_name,PLAYER 2 NAME,TÊN NGƯỜI CHƠI 2
+PlayerSetup.choose_character,CHOOSE CHARACTER,CHỌN NHÂN VẬT
+PlayerSetup.knight,KNIGHT,Hiệp sĩ
+PlayerSetup.mage,MAGE,Pháp sư
+PlayerSetup.archer,ARCHER,Cung thủ
+PlayerSetup.bot,BOT,Máy
+Settings.title,SETTINGS,CÀI ĐẶT
+Settings.audio,AUDIO,ÂM THANH
+Settings.bgm,Background Music,Nhạc nền
+Settings.sfx,Sound effects,Hiệu ứng 
+Settings.language,LANGUAGE,NGÔN NGỮ
+Settings.english,ENGLISH,Tiếng Anh
+Settings.vietnamese,TIENG VIET,Tiếng Việt
+Settings.note,* Language affects UI text only,* Ngôn ngữ chỉ ảnh hưởng đến phần chữ trên giao diện
+Settings.on,ON,Bật
+Settings.off,OFF,Tắt
+Help.title,HELP,HỖ TRỢ
+Help.about_the_game,ABOUT THE GAME,GIỚI THIỆU TRÒ CHƠI
+Help.gameinfo1,Caro (Gomoku) is a strategy,Caro (Gomoku) là trò chơi chiến thuật
+Help.gameinfo2,board game for 2 players.,dành cho 2 người chơi.
+Help.gameinfo3,Place 5 pieces in a row to win,Xếp 5 quân liên tiếp để thắng
+Help.gameinfo4,on a 15x15 grid. Diagonals,Trên bàn cờ 15x15. Chéo
+Help.gameinfo5,horizontal and vertical all count!,ngang và dọc đều được tính!
+Help.how_to_play,HOW TO PLAY,CÁCH CHƠI
+Help.move_cursor_up,Move cursor up,Di chuyển con trỏ lên
+Help.move_cursor_down,Move cursor down,Di chuyển con trỏ xuống
+Help.move_cursor_left,Move cursor left,Di chuyển con trỏ trái
+Help.move_cursor_right,Move cursor right,Di chuyển con trỏ phải
+Help.place_your_piece,Place your piece,Đặt quân cờ
+Help.click_to_place_piece,Click to place piece,Nhấp chuột để đặt quân
+Help.save_load,SAVE & LOAD,LƯU & TẢI
+Help.save_current_game,Save current game,Lưu ván hiện tại
+Help.load_saved_game,Load saved game,Tải ván đã lưu
+Help.timer,Turn,Lượt
+Help.each_player_has_30_seconds,Each player has 30 seconds,Mỗi người chơi có 30 giây
+Help.per_turn_time_runs_out,per turn. Time runs out?,mỗi lượt. Hết giờ?
+Help.the_opponent_wins,The opponent wins!,Đối thủ sẽ thắng!
+About.title,ABOUT US,GIỚI THIỆU
+About.instructor,INSTRUCTOR,GIẢNG VIÊN
+About.instructor_name,Mr. Truong Toan Thinh,Thầy Trương Toàn Thịnh
+About.development_team,DEVELOPMENT TEAM,ĐỘI PHÁT TRIỂN
+About.member_1_name,Pham Anh Tuan,Phạm Anh Tuấn
+About.member_2_name,Le Bao Minh,Lê Bảo Minh
+About.member_3_name,Vo Hoang Phuc,Võ Hoàng Phúc
+About.member_1_id,24120238,24120238
+About.member_2_id,24120200,24120200
+About.member_3_id,24120123,24120123
+About.member_1_role,UI,Giao diện
+About.member_2_role,LOGIC & BOT,Logic & Bot
+About.member_3_role,SAVE / SOUND,Lưu / Âm thanh
+About.member_1_roledetail,Interface & Graphics,Giao diện & đồ họa
+About.member_2_roledetail,Game Logic & AI,Vận hành trò chơi & AI
+About.member_3_roledetail,Load Game & Sound FX & Language,Tải game & hiệu ứng âm thanh & ngôn ngữ
+About.id_label,ID:,MSSV:
+About.version,CARO GAME  v1.0  -  HCMUS  2024,CARO GAME  v1.0  -  HCMUS  2024
+LoadGame.load_game,LOAD GAME,TẢI VÁN CHƠI
+LoadGame.no_save_files_found,NO SAVE FILES FOUND,KHÔNG TÌM THẤY FILE LƯU
+LoadGame.play_a_game_and_press_l_to_save,PLAY A GAME AND PRESS L TO SAVE,Hãy chơi một ván rồi nhấn L để lưu
+LoadGame.select_a_save_file,SELECT A SAVE FILE,CHỌN FILE LƯU
+LoadGame.ongoing,ONGOING,ĐANG CHƠI
+LoadGame.x_wins,X WINS,X THẮNG
+LoadGame.o_wins,O WINS,O THẮNG
+LoadGame.draw,DRAW,HÒA
+LoadGame.and_more,... and {count} more,... và còn {count} file khác
+LoadGame.load,LOAD,TẢI
+LoadGame.up_down_select_enter_click_load,UP/DOWN Select ENTER/CLICK Load,UP/DOWN chọn ENTER/CLICK tải
+Gameplay.save_game,SAVE GAME,LƯU VÁN CHƠI
+Gameplay.load_game,LOAD GAME,TẢI VÁN CHƠI
+Gameplay.enter_filename_no_spaces,Enter filename no spaces,Nhập tên file không có khoảng trắng
+Gameplay.enter_confirm_esc_cancel,ENTER Confirm ESC Cancel,ENTER Xác nhận ESC Hủy
+Gameplay.saved_prefix,SAVED: ,ĐÃ LƯU: 
+Gameplay.loaded_prefix,LOADED: ,ĐÃ TẢI: 
+Gameplay.save_failed,SAVE FAILED!,LƯU THẤT BẠI!
+Gameplay.file_not_found,FILE NOT FOUND!,KHÔNG TÌM THẤY FILE!
+Gameplay.press_enter_or_click_home_to_return,Press ENTER or click HOME to return,Nhấn ENTER hoặc bấm HOME để quay về
+Gameplay.l_save_t_load,L SAVE T LOAD,L LƯU T TẢI
+Gameplay.player_1,PLAYER 1,NGƯỜI CHƠI 1
+Gameplay.player_2,PLAYER 2,NGƯỜI CHƠI 2
+Gameplay.bot,BOT,MÁY
+Gameplay.x_wins,X WINS!,X THẮNG!
+Gameplay.o_wins,O WINS!,O THẮNG!
+Gameplay.draw,DRAW!,HÒA!
+Gameplay.move_label,Move:,Nước:
+Gameplay.win_label,Win:,Thắng:
+Gameplay.knight,Knight,Hiệp sĩ
+Gameplay.mage,Mage,Pháp sư
+Gameplay.archer,Archer,Cung thủ
+Gameplay.goblin,Goblin,Yêu tinh
+Gameplay.dragon,Dragon,Rồng

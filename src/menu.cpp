@@ -8,12 +8,21 @@ struct MenuItem { const char* text; int x; int y; };
 
 static const MenuItem menuItems[] =
 {
+<<<<<<< HEAD
     { "New Game",  1320, 185 },
     { "Load Game", 1300, 320 },
     { "Settings",  1310, 450 },
     { "Help",      1380, 580 },
     { "About Us",  1320, 710 },
     { "Exit",      1380, 830 }
+=======
+    { "Menu.new_game",  1300, 185 },
+    { "Menu.load_game", 1300, 318 },
+    { "Menu.settings",  1300, 446 },
+    { "Menu.help",      1300, 576 },
+    { "Menu.about_us",  1300, 704 },
+    { "Menu.exit",      1300, 826 }
+>>>>>>> 426b846 (Adjust UI location)
 };
 static const int itemCount = (int)(sizeof(menuItems) / sizeof(menuItems[0]));
 

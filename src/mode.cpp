@@ -55,12 +55,16 @@ void DrawModeSelection(AppContext& ctx, const TextureBank& tex)
     int dialogY = GetScreenHeight() / 2 - tex.dialogModeGame.height / 2;
     DrawTexture(tex.dialogModeGame, dialogX, dialogY, WHITE);
 
+<<<<<<< HEAD
     DrawPixelTextStyled("MODE GAME", dialogX + 610, dialogY + 170, 6);
+=======
+    DrawPixelTextStyled(getText("Mode.mode_game",*ctx.curLanguage), dialogX + 630, dialogY + 165, 5);
+>>>>>>> 426b846 (Adjust UI location)
 
     Color pvpColor = (ctx.selectedMode == 0) ? YELLOW : WHITE;
     Color pveColor = (ctx.selectedMode == 1) ? YELLOW : WHITE;
-    DrawPixelText("PVP", dialogX + 475, dialogY + 700, 6, pvpColor);
-    DrawPixelText("PVE", dialogX + 965, dialogY + 700, 6, pveColor);
+    DrawPixelText(getText("Mode.pvp",*ctx.curLanguage), dialogX + 475, dialogY + 700, 6, pvpColor);
+    DrawPixelText(getText("Mode.pve",*ctx.curLanguage), dialogX + 965, dialogY + 700, 6, pveColor);
 
     bool hovered, clicked;
     DrawBackButton(tex.buttonBackNormal, tex.buttonBackHover, hovered, clicked);
