@@ -2,10 +2,12 @@ ITEM,ENGLISH,VIETNAMESE
 Menu.new_game,NEW GAME,BẮT ĐẦU
 Menu.load_game,LOAD GAME,TIẾP TỤC
 Menu.settings,SETTINGS,CÀI ĐẶT
-Menu.help,HELP,TRỢ GIÚP
+Menu.help,HELP,HỖ TRỢ
 Menu.about_us,ABOUT US,GIỚI THIỆU
 Menu.exit,EXIT,THOÁT
-Mode.mode_game,MODE GAME,CHẾ ĐỘ
+Mode.mode_game,MODE GAME,CHẾ ĐỘ CHƠI
+Mode.pvp,PVP,BẠN
+Mode.pve,PVE,MÁY
 Difficulty.select_difficulty,SELECT DIFFICULTY,CHỌN ĐỘ KHÓ
 Difficulty.easy,EASY,DỄ
 Difficulty.beginner_friendly,Beginner Friendly,Phù hợp cho người mới
@@ -19,7 +21,7 @@ Difficulty.blocks_and_attacks_smart,Blocks and attacks smart,Cản phá và tấ
 Difficulty.only_for_the_brave,Only for the brave!,Chỉ dành cho người gan dạ!
 Difficulty.vs,VS,VS
 Difficulty.hint_select_confirm,A/D or CLICK to select ENTER to confirm,A/D hoặc CLICK để chọn ENTER để xác nhận
-PlayerSetup.ok,OK,Đồng ý
+PlayerSetup.ok,OK,XONG
 PlayerSetup.player_1_name,PLAYER 1 NAME,TÊN NGƯỜI CHƠI 1
 PlayerSetup.player_2_name,PLAYER 2 NAME,TÊN NGƯỜI CHƠI 2
 PlayerSetup.choose_character,CHOOSE CHARACTER,CHỌN NHÂN VẬT
@@ -37,7 +39,7 @@ Settings.vietnamese,TIENG VIET,Tiếng Việt
 Settings.note,* Language affects UI text only,* Ngôn ngữ chỉ ảnh hưởng đến phần chữ trên giao diện
 Settings.on,ON,Bật
 Settings.off,OFF,Tắt
-Help.title,HELP,TRỢ GIÚP
+Help.title,HELP,HỖ TRỢ
 Help.about_the_game,ABOUT THE GAME,GIỚI THIỆU TRÒ CHƠI
 Help.gameinfo1,Caro (Gomoku) is a strategy,Caro (Gomoku) là trò chơi chiến thuật
 Help.gameinfo2,board game for 2 players.,dành cho 2 người chơi.

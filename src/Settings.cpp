@@ -5,6 +5,24 @@
 #include "Sound.h"
 #include <math.h>
 #include <cstring>
+#include <vector>
+#include <string>
+
+static void DrawSettingsTitle(const char* title, float glow)
+{
+    Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
+    int tW = (int)(strlen(title) * 8 * FONT_SCALE_XL);
+    DrawPixelText(title, 760, PANEL_TITLE_Y - 20 + 4, FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 764, PANEL_TITLE_Y - 20, FONT_SCALE_XL, titleCol);
+
+    // Đường kẻ trang trí
+    int lineY = PANEL_TITLE_Y + FONT_SCALE_XL * 9 + 10;
+    int lineLen = 400;
+    int lineX = GetScreenWidth() / 2 - lineLen / 2;
+    unsigned char lineA = (unsigned char)(120 + glow * 80);
+    DrawRectangle(lineX , lineY - 20, lineLen, 2, { 255, 220, 100, lineA });
+    DrawRectangle(lineX + 20, lineY - 20 + 6, lineLen - 40, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
+}
 
 static bool  s_bgmOn = true;
 static bool  s_sfxOn = true;
@@ -83,7 +101,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle(getText("Settings.title", *ctx.curLanguage), glow);
+    DrawSettingsTitle(getText("Settings.title", *ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect();
     DrawClassicPanel(panel, glow);
@@ -199,7 +217,7 @@ void DrawSettingsOverlay(const AppContext& ctx)
         // Tên ngôn ngữ
         const char* lang = LANGUAGES[s_langIdx];
         int lw = (int)(strlen(lang) * 8 * FONT_SCALE_SM);
-        DrawPixelText(lang, (int)(cx - lw / 2),
+        DrawPixelText(lang, (int)(cx - lw / 2 + 20),
             (int)(langY + rowH / 2 - FONT_GLYPH_H * FONT_SCALE_SM / 2),
             FONT_SCALE_SM, { 255, 255, 200, 255 });
     }

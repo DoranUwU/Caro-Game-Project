@@ -4,13 +4,31 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
+
+static void DrawAboutTitle(const char* title, float glow)
+{
+    Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
+    int tW = (int)(strlen(title) * 8 * FONT_SCALE_XL);
+    int tX = GetScreenWidth() / 2 - tW / 2;
+    DrawPixelText(title, 764, PANEL_TITLE_Y + 4 - 36, FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 760, PANEL_TITLE_Y - 36, FONT_SCALE_XL, titleCol);
+
+    // Đường kẻ trang trí
+    int lineY = PANEL_TITLE_Y + FONT_SCALE_XL * 9 + 10;
+    int lineLen = 400;
+    int lineX = GetScreenWidth() / 2 - lineLen / 2;
+    unsigned char lineA = (unsigned char)(120 + glow * 80);
+    DrawRectangle(lineX, lineY - 39, lineLen, 2, { 255, 220, 100, lineA });
+    DrawRectangle(lineX + 20, lineY - 39 + 6, lineLen - 40, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
+}
 
 void DrawAboutUsOverlay(const AppContext& ctx)
 {
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle(getText("About.title",*ctx.curLanguage), glow);
+    DrawAboutTitle(getText("About.title",*ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect(0.64f, 0.74f);
     DrawClassicPanel(panel, glow);
