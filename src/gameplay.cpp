@@ -359,12 +359,12 @@ static void DrawSaveLoadDialog(const AppContext& ctx)
     bool isSave = (ctx.saveLoadMode == AppContext::SaveLoadMode::SAVING);
 
     // Nền mờ toàn màn hình
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
+    DrawRectangle(0, 0, 1920, 1080, { 0, 0, 0, 160 });
 
     // Panel
     int pw = 680, ph = 240;
-    int px = GetScreenWidth() / 2 - pw / 2;
-    int py = GetScreenHeight() / 2 - ph / 2;
+    int px = 620;
+    int py = 420;
 
     DrawRectangle(px + 6, py + 6, pw, ph, { 0, 0, 0, 60 });
     DrawRectangle(px, py, pw, ph, { 0, 0, 0, 200 });
@@ -380,18 +380,16 @@ static void DrawSaveLoadDialog(const AppContext& ctx)
         : getText("Gameplay.load_game", *ctx.curLanguage);
     unsigned char tb = (unsigned char)(200 + glow * 55);
     Color titleCol = { 255, 220, 100, tb };
-    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
-    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2, py + 28, FONT_SCALE_LG, titleCol);
+    DrawPixelText(title, 852, py + 28, FONT_SCALE_LG, titleCol);
 
     // Label hướng dẫn
     const char* prompt = getText("Gameplay.enter_filename_no_spaces", *ctx.curLanguage);
-    int pW = (int)(strlen(prompt) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-    DrawPixelText(prompt, GetScreenWidth() / 2 - pW / 2, py + 95, FONT_SCALE_SM,
+    DrawPixelText(prompt, 710, py + 95, FONT_SCALE_SM,
         { 200, 190, 150, 220 });
 
     // Ô nhập tên file
     int boxW = 480, boxH = 46;
-    int boxX = GetScreenWidth() / 2 - boxW / 2;
+    int boxX = 720;
     int boxY = py + 130;
     DrawRectangle(boxX, boxY, boxW, boxH, { 15, 12, 5, 220 });
     DrawRectangleLinesEx({ (float)boxX, (float)boxY, (float)boxW, (float)boxH }, 2,
@@ -413,8 +411,7 @@ static void DrawSaveLoadDialog(const AppContext& ctx)
 
     // Hint ENTER / ESC
     const char* hint = getText("Gameplay.enter_confirm_esc_cancel", *ctx.curLanguage);
-    int hW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
-    DrawPixelText(hint, GetScreenWidth() / 2 - hW / 2, py + ph - 34, 2,
+    DrawPixelText(hint, 780, py + ph - 34, 2,
         { 150, 140, 100, 160 });
 }
 
@@ -489,7 +486,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         else if (ctx.gameState.status == GameStatus::WIN_O) msg = getText("Gameplay.o_wins", *ctx.curLanguage);
         else if (ctx.gameState.status == GameStatus::DRAW)  msg = getText("Gameplay.draw", *ctx.curLanguage);
         // Overlay toi
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
+        DrawRectangle(0, 0, 1920, 1080, { 0, 0, 0, 160 });
 
         // --- Ve lai highlight duong thang SAU overlay de no hien tren cung ---
         if (ctx.gameState.winLineCount > 0)
@@ -528,17 +525,15 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
             }
         }
 
-        int msgW = (int)(strlen(msg) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_XL);
-        DrawPixelText(msg, GetScreenWidth() / 2 - msgW / 2 + 4, 154,
+        DrawPixelText(msg, 844, 154,
             FONT_SCALE_XL, { 0, 0, 0, 140 });
-        DrawPixelText(msg, GetScreenWidth() / 2 - msgW / 2, 150,
+        DrawPixelText(msg, 840, 150,
             FONT_SCALE_XL, GOLD);
 
         const char* hint = getText("Gameplay.press_enter_or_click_home_to_return", *ctx.curLanguage);
-        int hintW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
         DrawPixelText(hint,
-            GetScreenWidth() / 2 - hintW / 2,
-            GetScreenHeight() / 2 + 400,
+            700,
+            940,
             FONT_SCALE_MD, WHITE);
     }
 
@@ -553,10 +548,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
 
     // --- Goi y phim ---
     int barH = 30;
-    DrawRectangle(0, GetScreenHeight() - barH,
-        GetScreenWidth(), barH, { 0,0,0,200 });
+    DrawRectangle(0, 1050,
+        1920, barH, { 0,0,0,200 });
     DrawPixelText(getText("Gameplay.l_save_t_load", *ctx.curLanguage),
-        700, GetScreenHeight() - 30, FONT_SCALE_SM - 1, WHITE);
+        700, 1050, FONT_SCALE_SM - 1, WHITE);
 
     // --- Thong bao ket qua save/load ---
     if (ctx.saveLoadMsgTimer > 0.0f && !ctx.saveLoadMsg.empty())
@@ -566,11 +561,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
         bool isErr = (ctx.saveLoadMsg.find("FAILED") != std::string::npos ||
             ctx.saveLoadMsg.find("NOT FOUND") != std::string::npos);
         Color mc = isErr ? Color{ 255, 80, 80, ma } : Color{ 120, 255, 120, ma };
-        int mW = (int)(ctx.saveLoadMsg.size() * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-        DrawRectangle(0, GetScreenHeight() - 60, GetScreenWidth(), 26, { 0,0,0,(unsigned char)(140 * alpha01) });
+        DrawRectangle(0, 1020, 1920, 26, { 0,0,0,(unsigned char)(140 * alpha01) });
         DrawPixelText(ctx.saveLoadMsg.c_str(),
-            GetScreenWidth() / 2 - mW / 2,
-            GetScreenHeight() - 58,
+            850,
+            1022,
             FONT_SCALE_SM, mc);
     }
 

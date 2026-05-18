@@ -13,13 +13,8 @@
 
 static void GetDifficultyRects(Rectangle& easyRect, Rectangle& hardRect)
 {
-    int sw = GetScreenWidth(), sh = GetScreenHeight();
-    int cardW = sw / 2 - 120;
-    int cardH = (int)(sh * 0.68f);
-    int cardY = sh / 2 - cardH / 2 + 30;
-
-    easyRect = { 80.0f,           (float)cardY, (float)cardW, (float)cardH };
-    hardRect = { (float)(sw / 2 + 40), (float)cardY, (float)cardW, (float)cardH };
+    easyRect = { 80.0f, 203.0f, 840.0f, 734.0f };
+    hardRect = { 1000.0f, 203.0f, 840.0f, 734.0f };
 }
 
 // ============================================================
@@ -204,18 +199,13 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     // --- Tiêu đề ---
     const char* title = getText("Difficulty.select_difficulty", *ctx.curLanguage);
     Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
-    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
-    int tX = GetScreenWidth() / 2 - tW / 2;
-    DrawPixelText(title, tX + 3, PANEL_TITLE_Y + 3, FONT_SCALE_LG, { 0, 0, 0, 140 });
-    DrawPixelText(title, tX, PANEL_TITLE_Y, FONT_SCALE_LG, titleCol);
+    DrawPixelText(title, 663, 93, FONT_SCALE_LG, { 0, 0, 0, 140 });
+    DrawPixelText(title, 660, 90, FONT_SCALE_LG, titleCol);
 
     // Đường kẻ dưới tiêu đề
-    int lineLen = 500;
-    int lineX = GetScreenWidth() / 2 - lineLen / 2;
-    int lineY = PANEL_TITLE_Y + FONT_SCALE_LG * (FONT_GLYPH_H + 1) + 8;
     unsigned char la = (unsigned char)(100 + glow * 80);
-    DrawRectangle(lineX, lineY, lineLen, 2, { 255, 220, 100, la });
-    DrawRectangle(lineX + 20, lineY + 6, lineLen - 40, 1, { 255, 200,  80, (unsigned char)(la / 2) });
+    DrawRectangle(710, 130, 500, 2, { 255, 220, 100, la });
+    DrawRectangle(730, 136, 460, 1, { 255, 200,  80, (unsigned char)(la / 2) });
 
     // --- Tính rect 2 card ---
     Rectangle easyRect, hardRect;
@@ -276,26 +266,15 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
 
     // --- VS ở giữa 2 card ---
     {
-        float vsX = (easyRect.x + easyRect.width + hardRect.x) / 2.0f;
-        float vsY = GetScreenHeight() / 2.0f;
         float pulse = (sinf(t * 3.0f) + 1.0f) / 2.0f;
         unsigned char vsA = (unsigned char)(160 + pulse * 80);
-        int vsScale = 5;
-        int vsW = (int)(2 * (FONT_GLYPH_W + FONT_SPACING) * vsScale);
-        DrawPixelText("VS",
-            (int)(vsX - vsW / 2),
-            (int)(vsY - FONT_GLYPH_H * vsScale / 2),
-            vsScale, { 255, 220, 80, vsA });
+        DrawPixelText("VS", 930, 523, 5, { 255, 220, 80, vsA });
     }
 
     // --- Hint phím ---
     {
         const char* hint = getText("Difficulty.hint_select_confirm", *ctx.curLanguage);
-        int hw = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
-        DrawPixelText(hint,
-            GetScreenWidth() / 2 - hw / 2,
-            GetScreenHeight() - 50,
-            2, { 180, 160, 90, 160 });
+        DrawPixelText(hint, 710, 1030, 2, { 180, 160, 90, 160 });
     }
 
     // --- Back button ---
