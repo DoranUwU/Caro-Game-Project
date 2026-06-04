@@ -1,30 +1,41 @@
 #include "Bot.h"
 #include "AISearch.h"
+#include "GameLogic.h"
+#include "Position.h"
 
 Position getBestMove(const GameState& state, int depth) {
     Position bestMove(-1, -1);
-    int bestScore = -INF;
 
-    int colourMul;
-    if (state.currentPlayer == Player::PlayerX) colourMul = 1;
-    else colourMul = -1;
-
-    MoveList orderedMoves = getOrderedMoves(state);
-
-    for (int i = 0; i < orderedMoves.count; i++) {
-        Position move = orderedMoves.list[i];
-        GameState nextState = playMove(state, move);
-        int score = -negamax(nextState, depth - 1, -INF, INF, -colourMul);
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMove = move;
+    int colourMul = (state.currentPlayer == Player::PlayerX) ? 1 : -1;
+    for (int currDepth = 1; currDepth <= depth; currDepth++) {
+        Position bestMoveAtCurrDepth(-1, -1);
+        int bestScore = -INF;
+        
+        MoveList orderedMoves = getOrderedMoves(state);
+        if (bestMove.row != -1) {
+            for (int i = 0; i < orderedMoves.count; i++) {
+                if (orderedMoves.list[i] == bestMove) {
+                    Position temp = orderedMoves.list[0];
+                    orderedMoves.list[0] = orderedMoves.list[i];
+                    orderedMoves.list[i] = temp;
+                    break;
+                }
+            }
         }
-    }
 
-    if (bestMove.row == -1 && orderedMoves.count > 0) {
-        bestMove = orderedMoves.list[0];
-    }
+        for (int i = 0; i < orderedMoves.count; i++) {
+          Position move = orderedMoves.list[i];
+          GameState nextState = playMove(state, move);
+          int score = -negamax_improved(nextState, currDepth - 1, -INF, INF, -colourMul);
 
+          if (score > bestScore) {
+            bestScore = score;
+            bestMoveAtCurrDepth = move;
+          }
+        }
+
+        bestMove = bestMoveAtCurrDepth;
+    }
+    
     return bestMove;
 }

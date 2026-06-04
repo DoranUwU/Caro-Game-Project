@@ -1,5 +1,7 @@
 #include "AISearch.h"
 
+using namespace std;
+
 //Chặn bot xét nước đi ở các ô quá xa bên ngoài
 MoveList getRelevantMoves(const GameState& state) {
     MoveList l;
@@ -49,28 +51,25 @@ MoveList getRelevantMoves(const GameState& state) {
 Sort điểm của nước đi để chạy alpha-beta prunning hiệu quả 
 -> attack(tạo quân liên tiếp) và defence move(block đối thủ)
 */
-#include <cmath> // Cần thiết để dùng hàm trị tuyệt đối std::abs
+#include <cmath> // Cần thiết để dùng hàm trị tuyệt đối abs
 
-// --- PHIÊN BẢN SẮP XẾP SIÊU TỐC ---
 MoveList getOrderedMoves(const GameState& state) {
     MoveList rawMoves = getRelevantMoves(state);
 
     ScoredMove scoredMoves[BOARD_SIZE * BOARD_SIZE];
     int count = rawMoves.count;
-    int center = BOARD_SIZE / 2;
 
-    // 1. Chấm điểm các nước đi cực nhanh (Không dùng evaluateBoard nữa)
+    // 1. Chấm điểm các nước đi dựa trên mật độ cờ xung quanh
     for (int i = 0; i < count; ++i) {
         Position move = rawMoves.list[i];
 
-        // Điểm = 20 - khoảng cách tới tâm bàn cờ.
-        // Nước đi nào càng gần tâm sẽ càng được tính toán trước để Alpha-Beta cắt tỉa sớm.
-        int score = 20 - (std::abs(move.row - center) + std::abs(move.column - center));
+        // Gọi hàm đánh giá cục bộ thay vì tính khoảng cách tới tâm
+        int score = evaluateMove(state, move);
 
         scoredMoves[i] = { move, score };
     }
 
-    //insertion sort
+    // 2. Sắp xếp giảm dần theo điểm số (Insertion Sort)
     for (int i = 1; i < count; ++i) {
         ScoredMove key = scoredMoves[i];
         int j = i - 1;
@@ -83,10 +82,10 @@ MoveList getOrderedMoves(const GameState& state) {
         scoredMoves[j + 1] = key;
     }
 
-    // 3. Trả về danh sách
+    // 3. Trả về danh sách đã sắp xếp
     MoveList orderedMoves;
 
-    int MAX_MOVES_TO_CHECK = 6;
+    int MAX_MOVES_TO_CHECK = 10; 
     int limit = (count < MAX_MOVES_TO_CHECK) ? count : MAX_MOVES_TO_CHECK;
 
     for (int i = 0; i < limit; ++i) {
@@ -101,7 +100,7 @@ int negamax(const GameState& state, int depth, int alpha, int beta, int colourMu
         return colourMul * evalBoard(state);
     }
 
-    int max = -INF;
+    int MAX = -INF;
 
     for (int r = 0; r < BOARD_SIZE; r++) {
         for (int c = 0; c < BOARD_SIZE; c++) {
@@ -111,16 +110,16 @@ int negamax(const GameState& state, int depth, int alpha, int beta, int colourMu
                 GameState nextState = playMove(state, move);
 
                 int score = -negamax(nextState, depth - 1, -beta, -alpha, -colourMul);
-                max = std::max(max, score);
+                MAX = max(MAX, score);
 
-                alpha = std::max(alpha, score);
+                alpha = max(alpha, score);
 
-                if (alpha >= beta) return max;
+                if (alpha >= beta) return MAX;
             }
         }
     }
 
-    return max;
+    return MAX;
 }
 
 int negamax_improved(const GameState& state, int depth, int alpha, int beta, int colourMul) {
@@ -128,7 +127,7 @@ int negamax_improved(const GameState& state, int depth, int alpha, int beta, int
         return colourMul * evalBoard(state);
     }
 
-    int max = -INF;
+    int MAX = -INF;
 
     MoveList orderedMoves = getOrderedMoves(state);
     for (int i = 0; i < orderedMoves.count; i++) {
@@ -136,10 +135,31 @@ int negamax_improved(const GameState& state, int depth, int alpha, int beta, int
         GameState nextState = playMove(state, move);
         int score = -negamax_improved(nextState, depth - 1, -beta, -alpha, -colourMul);
 
-        max = std::max(max, score);
-        alpha = std::max(alpha, score);
+        MAX = max(MAX, score);
+        alpha = max(alpha, score);
 
-        if (alpha >= beta) return max;
+        if (alpha >= beta) return MAX;
     }
-    return max;
+    return MAX;
+}
+
+int evaluateMove(const GameState& state, Position pos) {
+    int score = 0;
+    // Kiểm tra bán kính 2 ô xung quanh nước đi này
+    for (int r = -2; r <= 2; r++) {
+        for (int c = -2; c <= 2; c++) {
+            if (r == 0 && c == 0) continue;
+            Position checkPos(pos.row + r, pos.column + c);
+            
+            if (!isOutsideBound(checkPos)) {
+                Player p = getPlayerAt(state.board, checkPos);
+                if (p != Player::NONE) {
+                    // Càng gần càng điểm cao (bán kính 1 = 2 điểm, bán kính 2 = 1 điểm)
+                    if (abs(r) <= 1 && abs(c) <= 1) score += 2;
+                    else score += 1;
+                }
+            }
+        }
+    }
+    return score;
 }
