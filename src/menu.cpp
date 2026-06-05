@@ -72,6 +72,9 @@ void DrawMenu(const AppContext& ctx, const TextureBank& tex)
 {
     DrawFullscreenTexture(tex.background);
 
+    // Draw "CARO" title in the custom thick outline & gradient pixel art style
+    DrawPixelTextTitle("CARO", 350, 100, 24);
+
     for (int i = 0; i < itemCount; i++)
     {
         if (i == ctx.selectedItem)

@@ -17,5 +17,6 @@ struct Glyph
 void DrawGlyph(const Glyph& g, int x, int y, int scale, Color color);
 void DrawPixelText(string text, int x, int y, int scale, Color color);
 void DrawPixelTextStyled(string text, int x, int y, int scale);
+void DrawPixelTextTitle(string text, int x, int y, int scale);
 
 #endif // TEXT_RENDERER_H
