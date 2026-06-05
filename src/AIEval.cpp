@@ -22,17 +22,12 @@ int getPatternScore(int consecutivePieces, int openEnds) {
     return 0;
 }
 
-
-// ---------------------------------------------------------------------------
-// scoreThreat
 // Counts the score of placing `player`'s piece hypothetically at `pos`.
-// Scans all 4 axes (8 directions paired) just like evalBoard does for real
-// pieces, but treats `pos` as if it already holds `player`.
-// ---------------------------------------------------------------------------
+// Scans all 4 axes (8 directions paired) just like evalBoard does for real pieces, but treats `pos` as if it already holds `player`.
 int scoreThreat(const Board& board, Position pos, Player player) {
     static const Position dirs[4][2] = {
-        { Direction::North,     Direction::South     },
-        { Direction::East,      Direction::West      },
+        { Direction::North, Direction::South },
+        { Direction::East, Direction::West },
         { Direction::Northeast, Direction::Southwest },
         { Direction::Northwest, Direction::Southeast }
     };
@@ -46,14 +41,20 @@ int scoreThreat(const Board& board, Position pos, Player player) {
         Position p;
 
         p = pos + dirs[i][0];
-        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) { fwd++; p = p + dirs[i][0]; }
+        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) {
+            fwd++;
+            p = p + dirs[i][0];
+        }
         Position fwdEnd = p; // first cell past the run forward
 
         p = pos + dirs[i][1];
-        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) { bwd++; p = p + dirs[i][1]; }
+        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) {
+            bwd++;
+            p = p + dirs[i][1];
+        }
         Position bwdEnd = p; // first cell past the run backward
 
-        int consecutive = fwd + bwd + 1; // +1 for `pos` itself
+        int consecutive = fwd + bwd + 1; // +1 for `pos`
 
         int openEnds = 0;
         if (!isOutsideBound(fwdEnd) && isCellEmpty(board, fwdEnd)) openEnds++;
@@ -83,7 +84,7 @@ int evalBoard(const GameState& state) {
             if (player == Player::NONE) continue; //skip if empty cell
 
             int centre = BOARD_SIZE / 2;
-            int dist = std::abs(r - centre) + abs(c - centre);
+            int dist = abs(r - centre) + abs(c - centre);
             int posScore = 20 - dist;
 
             if (player == Player::PlayerX) {
