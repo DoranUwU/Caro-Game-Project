@@ -23,6 +23,48 @@ int getPatternScore(int consecutivePieces, int openEnds) {
 }
 
 
+// ---------------------------------------------------------------------------
+// scoreThreat
+// Counts the score of placing `player`'s piece hypothetically at `pos`.
+// Scans all 4 axes (8 directions paired) just like evalBoard does for real
+// pieces, but treats `pos` as if it already holds `player`.
+// ---------------------------------------------------------------------------
+int scoreThreat(const Board& board, Position pos, Player player) {
+    static const Position dirs[4][2] = {
+        { Direction::North,     Direction::South     },
+        { Direction::East,      Direction::West      },
+        { Direction::Northeast, Direction::Southwest },
+        { Direction::Northwest, Direction::Southeast }
+    };
+
+    int total = 0;
+
+    for (int i = 0; i < 4; i++) {
+        // Count consecutive same-colour pieces along each axis,
+        // treating `pos` as already occupied by `player`.
+        int fwd = 0, bwd = 0;
+        Position p;
+
+        p = pos + dirs[i][0];
+        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) { fwd++; p = p + dirs[i][0]; }
+        Position fwdEnd = p; // first cell past the run forward
+
+        p = pos + dirs[i][1];
+        while (!isOutsideBound(p) && getPlayerAt(board, p) == player) { bwd++; p = p + dirs[i][1]; }
+        Position bwdEnd = p; // first cell past the run backward
+
+        int consecutive = fwd + bwd + 1; // +1 for `pos` itself
+
+        int openEnds = 0;
+        if (!isOutsideBound(fwdEnd) && isCellEmpty(board, fwdEnd)) openEnds++;
+        if (!isOutsideBound(bwdEnd) && isCellEmpty(board, bwdEnd)) openEnds++;
+
+        total += getPatternScore(consecutive, openEnds);
+    }
+
+    return total;
+}
+
 int evalBoard(const GameState& state) {
     int total = 0;
 
@@ -73,8 +115,10 @@ int evalBoard(const GameState& state) {
 
                 int s = getPatternScore(count, openEnds);
 
+                // Weight the opponent's threats 1.5x so defence takes
+                // priority over attack when scores are otherwise equal.
                 if (player == Player::PlayerX) total += s;
-                else if (player == Player::PlayerO) total -= s;
+                else if (player == Player::PlayerO) total -= (s + s / 2);
             }
         }
     }

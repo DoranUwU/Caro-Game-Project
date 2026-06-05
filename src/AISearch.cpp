@@ -85,7 +85,7 @@ MoveList getOrderedMoves(const GameState& state) {
     // 3. Trả về danh sách đã sắp xếp
     MoveList orderedMoves;
 
-    int MAX_MOVES_TO_CHECK = 10; 
+    int MAX_MOVES_TO_CHECK = 20; 
     int limit = (count < MAX_MOVES_TO_CHECK) ? count : MAX_MOVES_TO_CHECK;
 
     for (int i = 0; i < limit; ++i) {
@@ -144,22 +144,12 @@ int negamax_improved(const GameState& state, int depth, int alpha, int beta, int
 }
 
 int evaluateMove(const GameState& state, Position pos) {
-    int score = 0;
-    // Kiểm tra bán kính 2 ô xung quanh nước đi này
-    for (int r = -2; r <= 2; r++) {
-        for (int c = -2; c <= 2; c++) {
-            if (r == 0 && c == 0) continue;
-            Position checkPos(pos.row + r, pos.column + c);
-            
-            if (!isOutsideBound(checkPos)) {
-                Player p = getPlayerAt(state.board, checkPos);
-                if (p != Player::NONE) {
-                    // Càng gần càng điểm cao (bán kính 1 = 2 điểm, bán kính 2 = 1 điểm)
-                    if (abs(r) <= 1 && abs(c) <= 1) score += 2;
-                    else score += 1;
-                }
-            }
-        }
-    }
-    return score;
+    Player self     = state.currentPlayer;
+    Player opponent = (self == Player::PlayerX) ? Player::PlayerO : Player::PlayerX;
+
+    int attackScore  = scoreThreat(state.board, pos, self);
+    int defenceScore = scoreThreat(state.board, pos, opponent);
+
+    // Defence weighted 1.5x: prefer blocking over building when close in value
+    return attackScore + defenceScore + defenceScore / 2;
 }

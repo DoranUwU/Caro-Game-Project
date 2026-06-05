@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-enum Player {
+enum class Player {
     NONE = 0,
     PlayerX = 1,
     PlayerO = 2

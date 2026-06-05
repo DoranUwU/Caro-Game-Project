@@ -1,5 +1,4 @@
-#ifndef POSITION_H
-#define POSITION_H
+#pragma once
 
 struct Position {
     int row;
@@ -35,5 +34,3 @@ namespace Direction {
     constexpr Position Southeast = South + East;
     constexpr Position Southwest = South + West;
 } // namespace Direction
-
-#endif // POSITION_H
