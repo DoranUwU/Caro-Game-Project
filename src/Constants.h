@@ -1,4 +1,5 @@
-﻿#pragma once
+#pragma once
+
 // ============================================================
 //  GAME LOGIC
 // ============================================================
@@ -6,7 +7,7 @@ constexpr int BOARD_SIZE = 15;
 constexpr int WIN_CONDITION = 5;
 constexpr int MAX_DEPTH = 4;
 constexpr int TOTAL_CELLS = BOARD_SIZE * BOARD_SIZE;
-const int INF = 1e6;
+constexpr int INF = 1000000000;
 
 // ============================================================
 //  CỬA SỔ

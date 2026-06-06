@@ -11,29 +11,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <filesystem>
+#include <ctime>
 #include "Sound.h"
 #include "Bot.h"
-#include <thread>
-#include <atomic>
-
-// Tạo các biến toàn cục để giao tiếp giữa 2 luồng
-static std::atomic<bool> isBotThinking(false);
-static std::atomic<int> botMoveCol(-1);
-static std::atomic<int> botMoveRow(-1);
 
 static const char* SAVE_FILE = "saves/current_game.json";
 
 // ============================================================
 //  Helpers
 // ============================================================
-static void GetBoardOrigin(int& startX, int& startY) {
+static void GetBoardOrigin(int& startX, int& startY)
+{
     int boardPx = BOARD_SIZE * CELL_SIZE;
     startX = (GetScreenWidth() - boardPx) / 2;
     startY = (GetScreenHeight() - boardPx) / 2;
 }
 
-static Texture2D GetCharTexture(const TextureBank& tex, int charIndex, bool faceLeft) {
-    switch (charIndex) {
+static Texture2D GetCharTexture(const TextureBank& tex, int charIndex, bool faceLeft)
+{
+    switch (charIndex)
+    {
     case 1:  return faceLeft ? tex.spriteMage_L : tex.spriteMage_R;
     case 2:  return faceLeft ? tex.spriteArcher_L : tex.spriteArcher_R;
     case 3:  return tex.spriteGoblin;   // Easy bot
@@ -42,39 +39,15 @@ static Texture2D GetCharTexture(const TextureBank& tex, int charIndex, bool face
     }
 }
 
-static const char* GetCharName(int charIndex) {
+static const char* GetCharName(int charIndex, const map<string, string>& langMap)
+{
     switch (charIndex) {
-    case 1:  return "Mage";
-    case 2:  return "Archer";
-    case 3:  return "Goblin";
-    case 4:  return "Dragon";
-    default: return "Knight";
+    case 1:  return getText("Gameplay.mage", langMap);
+    case 2:  return getText("Gameplay.archer", langMap);
+    case 3:  return getText("Gameplay.goblin", langMap);
+    case 4:  return getText("Gameplay.dragon", langMap);
+    default: return getText("Gameplay.knight", langMap);
     }
-}
-
-// ============================================================
-//  DrawTurnTriangle
-// ============================================================
-static void DrawTurnTriangle(int cx, int tipY, float time) {
-    int offsetY = (int)(sinf(time * BOUNCE_SPEED) * BOUNCE_AMP);
-    int ty = tipY + offsetY;
-    int by = ty - ARROW_H;
-
-    Vector2 top_left = { (float)(cx - ARROW_W), (float)by };
-    Vector2 top_right = { (float)(cx + ARROW_W), (float)by };
-    Vector2 bottom = { (float)cx,             (float)ty };
-
-    // Bong (dich xuong phai 2px)
-    Vector2 sl = { top_left.x + 2, top_left.y + 2 };
-    Vector2 sr = { top_right.x + 2, top_right.y + 2 };
-    Vector2 sb = { bottom.x + 2, bottom.y + 2 };
-    DrawTriangle(sl, sb, sr, { 0, 0, 0, 80 });
-
-    // Than mui ten mau vang
-    DrawTriangle(top_left, bottom, top_right, YELLOW);
-
-    // Vien den mong
-    DrawTriangleLines(top_left, bottom, top_right, BLACK);
 }
 
 // ============================================================
@@ -86,7 +59,9 @@ static void DrawCharacterSide(
     const char* charName,
     int moveCount, int winCount,
     int overrideX,
-    int charIndex = 0) {
+    const map<string, string>& langMap,
+    int charIndex = 0)
+{
 
     float scaleX = (float)CHAR_DISPLAY_W / sprite.width;
     float scaleY = (float)CHAR_DISPLAY_H / sprite.height;
@@ -108,25 +83,26 @@ static void DrawCharacterSide(
         0, scale, WHITE);
 
     // --- Khung thong tin xanh dam ben duoi ---
-    int infoX = overrideX;
-    int infoY = y + CHAR_DISPLAY_H + 70;
+    int infoX = overrideX; 
+    int infoY = y + CHAR_DISPLAY_H + 70; 
 
     // Vẽ tên nhân vật
     DrawPixelText(charName, infoX, infoY, FONT_SCALE_MD, { 255,220,80,255 });
 
     // Vẽ Move và Win
     char buf[32];
-    snprintf(buf, sizeof(buf), "Move: %d", moveCount);
+    snprintf(buf, sizeof(buf), "%s %d", getText("Gameplay.move_label", langMap), moveCount);
     DrawPixelText(buf, infoX, infoY + 40, FONT_SCALE_SM, WHITE);
 
-    snprintf(buf, sizeof(buf), "Win: %d", winCount);
+    snprintf(buf, sizeof(buf), "%s %d", getText("Gameplay.win_label", langMap), winCount);
     DrawPixelText(buf, infoX, infoY + 70, FONT_SCALE_SM, WHITE);
 }
 
 // ============================================================
 //  DrawTimerText
 // ============================================================
-static void DrawTimerText(float timeLeft, float time) {
+static void DrawTimerText(float timeLeft, float time)
+{
     int boxW = 220;
     int boxH = 90;
     int boxX = TIMER_CENTER_X - boxW / 2;
@@ -150,35 +126,36 @@ static void DrawTimerText(float timeLeft, float time) {
         ? Color{ 255, 80, 80, (unsigned char)(200 + glow * 55) }
     : Color{ 255, 215, 40, (unsigned char)(210 + glow * 45) };
 
-    DrawPixelText(buf, tx + 2, ty + 2 + 50, tScale, { 0, 0, 0, 130 });
-    DrawPixelText(buf, tx, ty + 50, tScale, col);
+    DrawPixelText(buf, tx + 2, ty + 2 + 40, tScale, { 0, 0, 0, 130 });
+    DrawPixelText(buf, tx, ty + 40, tScale, col);
 }
 
 // ============================================================
 //  UpdateGameplay
 // ============================================================
-void UpdateGameplay(AppContext& ctx) {
+void UpdateGameplay(AppContext& ctx)
+{
     float dt = GetFrameTime();
 
-    if (dt > 0.1f) {
-        dt = 0.1f;
-    }
-
-    if (ctx.enterGuard) {
+    if (ctx.enterGuard)
+    {
         ctx.enterGuard = false;
         return;
     }
 
     // --- Đếm ngược thông báo kết quả save/load ---
-    if (ctx.saveLoadMsgTimer > 0.0f) {
+    if (ctx.saveLoadMsgTimer > 0.0f)
+    {
         ctx.saveLoadMsgTimer -= dt;
         if (ctx.saveLoadMsgTimer < 0.0f) ctx.saveLoadMsgTimer = 0.0f;
     }
 
     // --- Xử lý dialog Save / Load khi đang nhập tên file ---
-    if (ctx.saveLoadMode != AppContext::SaveLoadMode::NONE) {
+    if (ctx.saveLoadMode != AppContext::SaveLoadMode::NONE)
+    {
         // ESC huỷ dialog
-        if (IsKeyPressed(KEY_ESCAPE)) {
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
             ctx.saveLoadMode = AppContext::SaveLoadMode::NONE;
             ctx.saveLoadInput.clear();
             return;
@@ -186,11 +163,13 @@ void UpdateGameplay(AppContext& ctx) {
 
         // Nhập ký tự
         int key = GetCharPressed();
-        while (key > 0) {
+        while (key > 0)
+        {
             // Chỉ cho phép ký tự hợp lệ trong tên file
             if (((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') ||
                 (key >= '0' && key <= '9') || key == '_' || key == '-')
-                && ctx.saveLoadInput.size() < 20) {
+                && ctx.saveLoadInput.size() < 20)
+            {
                 ctx.saveLoadInput.push_back((char)key);
             }
             key = GetCharPressed();
@@ -199,50 +178,58 @@ void UpdateGameplay(AppContext& ctx) {
             ctx.saveLoadInput.pop_back();
 
         // ENTER: thực hiện save hoặc load
-        if (IsKeyPressed(KEY_ENTER) && !ctx.saveLoadInput.empty()) {
+        if (IsKeyPressed(KEY_ENTER) && !ctx.saveLoadInput.empty())
+        {
             char filepath[64];
             snprintf(filepath, sizeof(filepath), "saves/%s.json", ctx.saveLoadInput.c_str());
 
-            if (ctx.saveLoadMode == AppContext::SaveLoadMode::SAVING) {
+            if (ctx.saveLoadMode == AppContext::SaveLoadMode::SAVING)
+            {
                 std::filesystem::create_directories("saves");
+                ctx.gameState.saveTime = (long long)std::time(nullptr);
                 if (saveGameState(ctx.gameState, filepath))
-                    ctx.saveLoadMsg = "SAVED: " + ctx.saveLoadInput;
+                    ctx.saveLoadMsg = string(getText("Gameplay.saved_prefix", *ctx.curLanguage)) + ctx.saveLoadInput;
                 else
-                    ctx.saveLoadMsg = "SAVE FAILED!";
+                    ctx.saveLoadMsg = getText("Gameplay.save_failed", *ctx.curLanguage);
             }
             else // LOADING
             {
                 GameState loaded;
-                if (loadGameState(filepath, loaded)) {
+                if (loadGameState(filepath, loaded))
+                {
                     ctx.hasPlayedWinsfx = false;
                     ctx.gameState = loaded;
                     ctx.turnTimer = TURN_TIME;
-                    ctx.saveLoadMsg = "LOADED: " + ctx.saveLoadInput;
+                    ctx.saveLoadMsg = string(getText("Gameplay.loaded_prefix", *ctx.curLanguage)) + ctx.saveLoadInput;
                 }
                 else
-                    ctx.saveLoadMsg = "FILE NOT FOUND!";
+                    ctx.saveLoadMsg = getText("Gameplay.file_not_found", *ctx.curLanguage);
             }
 
             ctx.saveLoadMsgTimer = 2.5f;
             ctx.saveLoadMode = AppContext::SaveLoadMode::NONE;
             ctx.saveLoadInput.clear();
         }
-        return;
+        return; 
     }
 
     // --- Xử lý dialog xác nhận thoát ---
-    if (ctx.showExitConfirm) {
+    if (ctx.showExitConfirm)
+    {
         // ESC đóng dialog (hủy thoát)
-        if (IsKeyPressed(KEY_ESCAPE)) {
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
             ctx.showExitConfirm = false;
             return;
         }
 
         // Điều hướng trái/phải giữa YES và NO
-        if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
+        if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A))
+        {
             ctx.exitConfirmSelected = 0;
         }
-        if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
+        if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D))
+        {
             ctx.exitConfirmSelected = 1;
         }
 
@@ -260,17 +247,21 @@ void UpdateGameplay(AppContext& ctx) {
             Rectangle yesRect = { (float)btnYesX, (float)btnY, (float)btnW, (float)btnH };
             Rectangle noRect = { (float)btnNoX, (float)btnY, (float)btnW, (float)btnH };
 
-            if (CheckCollisionPointRec(mouse, yesRect)) {
+            if (CheckCollisionPointRec(mouse, yesRect))
+            {
                 ctx.exitConfirmSelected = 0;
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
                     ctx.showExitConfirm = false;
                     ctx.screen = SCREEN_MENU;
                     return;
                 }
             }
-            if (CheckCollisionPointRec(mouse, noRect)) {
+            if (CheckCollisionPointRec(mouse, noRect))
+            {
                 ctx.exitConfirmSelected = 1;
-                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+                {
                     ctx.showExitConfirm = false;
                     return;
                 }
@@ -278,12 +269,16 @@ void UpdateGameplay(AppContext& ctx) {
         }
 
         // ENTER xác nhận lựa chọn
-        if (IsKeyPressed(KEY_ENTER)) {
-            if (ctx.exitConfirmSelected == 0) {
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            if (ctx.exitConfirmSelected == 0)
+            {
                 // YES - thoát về menu
                 ctx.showExitConfirm = false;
                 ctx.screen = SCREEN_MENU;
-            } else {
+            }
+            else
+            {
                 // NO - đóng dialog, tiếp tục chơi
                 ctx.showExitConfirm = false;
             }
@@ -294,28 +289,33 @@ void UpdateGameplay(AppContext& ctx) {
     }
 
     // --- Nút Home (Back) / ESC: hiện dialog xác nhận thoát ---
-    if (ctx.gameState.status == GameStatus::ONGOING) {
+    if (ctx.gameState.status == GameStatus::ONGOING)
+    {
         Vector2   mouse = GetMousePosition();
         Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
         if ((CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-            || IsKeyPressed(KEY_ESCAPE)) {
+            || IsKeyPressed(KEY_ESCAPE))
+        {
             ctx.showExitConfirm = true;
             ctx.exitConfirmSelected = 1; // mặc định chọn NO
             return;
         }
     }
-    else {
+    else
+    {
         // Game đã kết thúc -> thoát thẳng về menu
         Vector2   mouse = GetMousePosition();
         Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
         if ((CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-            || IsKeyPressed(KEY_ESCAPE)) {
+            || IsKeyPressed(KEY_ENTER))
+        {
             ctx.screen = SCREEN_MENU;
             return;
         }
     }
 
-    if (ctx.gameState.status != GameStatus::ONGOING) {
+    if (ctx.gameState.status != GameStatus::ONGOING)
+    {
         if (!ctx.hasPlayedWinsfx) {
             StopMusicStream(ctx.sound->ingame);
             PlaySfx(ctx.sound->win);
@@ -330,110 +330,121 @@ void UpdateGameplay(AppContext& ctx) {
     int startX, startY;
     GetBoardOrigin(startX, startY);
 
+    // --- Bot turn logic ---
+    if (ctx.gameState.status == GameStatus::ONGOING &&
+        ctx.playWithBot &&
+        ctx.gameState.currentPlayer == Player::PlayerO &&
+        ctx.saveLoadMode == AppContext::SaveLoadMode::NONE &&
+        !ctx.showExitConfirm)
+    {
+        Position botMove(-1, -1);
+        if (ctx.difficulty == 0)
+        {
+            // Easy Bot: Random move in relevant moves
+            MoveList moves = getRelevantMoves(ctx.gameState);
+            if (moves.count > 0)
+            {
+                botMove = moves.list[GetRandomValue(0, moves.count - 1)];
+            }
+            else
+            {
+                // Fallback to random cell on board
+                do {
+                    botMove.row = GetRandomValue(0, BOARD_SIZE - 1);
+                    botMove.column = GetRandomValue(0, BOARD_SIZE - 1);
+                } while (!isValidMove(ctx.gameState.board, botMove));
+            }
+        }
+        else
+        {
+            // Hard Bot: Negamax Search
+            botMove = getBestMove(ctx.gameState, MAX_DEPTH);
+        }
+
+        if (botMove.row != -1 && botMove.column != -1)
+        {
+            GameState next = playMove(ctx.gameState, botMove);
+            ctx.player2.moveCount++;
+            ctx.gameState = next;
+            ctx.turnTimer = TURN_TIME;
+            PlaySound(ctx.sound->placeSfx);
+        }
+        return; // skip human update this frame
+    }
+
     // --- Timer ---
     ctx.turnTimer -= dt;
-    if (ctx.turnTimer <= 0.0f) {
+    if (ctx.turnTimer <= 0.0f)
+    {
         // Het gio: ben kia thang
         ctx.gameState.status =
             (ctx.gameState.currentPlayer == Player::PlayerX)
-            ? GameStatus::WIN_O
-            : GameStatus::WIN_X;
+            ? GameStatus::WIN_O    
+            : GameStatus::WIN_X;   
         ctx.turnTimer = 0.0f;
         return;
     }
 
     // --- Di chuyen cursor ---
-    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
+    if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
+    {
         ctx.cursorY--; if (ctx.cursorY < 0)          ctx.cursorY = BOARD_SIZE - 1;
     }
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
+    {
         ctx.cursorY++; if (ctx.cursorY >= BOARD_SIZE) ctx.cursorY = 0;
     }
-    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
+    if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A))
+    {
         ctx.cursorX--; if (ctx.cursorX < 0)          ctx.cursorX = BOARD_SIZE - 1;
     }
-    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
+    if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D))
+    {
         ctx.cursorX++; if (ctx.cursorX >= BOARD_SIZE) ctx.cursorX = 0;
     }
 
     // --- Danh bang phim ---
-    auto tryMove = [&](int col, int row)
+    auto tryMove = [&](int col, int row) {
+        GameState next = playMove(ctx.gameState, Position(row, col));
+        bool moveApplied = (next.currentPlayer != ctx.gameState.currentPlayer);
+
+        if (moveApplied)
         {
-            GameState next = playMove(ctx.gameState, Position(row, col));
-            bool moveApplied = (next.currentPlayer != ctx.gameState.currentPlayer);
+            if (ctx.gameState.currentPlayer == Player::PlayerX)
+                ctx.player1.moveCount++;
+            else
+                ctx.player2.moveCount++;
 
-            if (moveApplied) {
-                if (ctx.gameState.currentPlayer == Player::PlayerX)
-                    ctx.player1.moveCount++;
-                else
-                    ctx.player2.moveCount++;
+            ctx.gameState = next;
+            ctx.turnTimer = TURN_TIME;
+            PlaySound(ctx.sound->placeSfx);
+        }
+    };
 
-                ctx.gameState = next;
-                ctx.turnTimer = TURN_TIME;
-                PlaySound(ctx.sound->placeSfx);
-            }
-        };
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+        tryMove(ctx.cursorX, ctx.cursorY);
+        PlaySound(ctx.sound->placeSfx);
+    }
 
     // --- Cursor theo chuot ---
     {
         Vector2 mouse = GetMousePosition();
         int mc = (int)(mouse.x - startX) / CELL_SIZE;
         int mr = (int)(mouse.y - (startY + 20)) / CELL_SIZE;
-        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE) {
+        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
+        {
             ctx.cursorX = mc; ctx.cursorY = mr;
         }
     }
 
-    bool isBotTurn = ctx.playWithBot && (ctx.gameState.currentPlayer == Player::PlayerO);
-    if (isBotTurn) {
-        // 1. Nếu Bot chưa bắt đầu nghĩ, thì phái nó đi nghĩ
-        if (!isBotThinking && botMoveCol == -1) {
-            isBotThinking = true;
-
-            int searchDepth = (ctx.difficulty == 1) ? 4 : 3;
-            GameState stateCopy = ctx.gameState; // Copy state để ném vào luồng phụ
-
-            // Khởi tạo một Luồng chạy ngầm (Background Thread)
-            std::thread([stateCopy, searchDepth]()
-                {
-                    // Việc tính toán nặng nề xảy ra ở luồng này, không ảnh hưởng game
-                    Position bestMove = getBestMove(stateCopy, searchDepth);
-
-                    // Tính xong, lưu tọa độ lại
-                    botMoveCol = bestMove.column;
-                    botMoveRow = bestMove.row;
-                    isBotThinking = false; // Báo hiệu đã nghĩ xong!
-                }).detach(); // detach() giúp luồng tự chạy độc lập
-        }
-
-        // 2. Nếu Bot đã nghĩ xong (có tọa độ hợp lệ), thực hiện nước đi!
-        if (!isBotThinking && botMoveCol != -1) {
-            tryMove(botMoveCol, botMoveRow);
-
-            // Reset biến để chuẩn bị cho lượt sau
-            botMoveCol = -1;
-            botMoveRow = -1;
-        }
-
-        // 3. Nếu đang trong quá trình nghĩ (isBotThinking == true), 
-        // Lệnh return này sẽ ngăn người chơi thao tác, nhưng Main Loop vẫn vẽ được hình ảnh!
-        if (isBotThinking) {
-            return;
-        }
-    }
-    else {
-        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-            tryMove(ctx.cursorX, ctx.cursorY);
-            //PlaySound(ctx.sound->placeSfx);
-        }
-        // --- Danh bang chuot ---
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            Vector2 mouse = GetMousePosition();
-            int mc = (int)(mouse.x - startX) / CELL_SIZE;
-            int mr = (int)(mouse.y - (startY + 20)) / CELL_SIZE;
-            if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
-                tryMove(mc, mr);
-        }
+    // --- Danh bang chuot ---
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        Vector2 mouse = GetMousePosition();
+        int mc = (int)(mouse.x - startX) / CELL_SIZE;
+        int mr = (int)(mouse.y - (startY + 20)) / CELL_SIZE;
+        if (mc >= 0 && mc < BOARD_SIZE && mr >= 0 && mr < BOARD_SIZE)
+            tryMove(mc, mr);
     }
 
     // --- Cap nhat win count khi game ket thuc ---
@@ -443,12 +454,14 @@ void UpdateGameplay(AppContext& ctx) {
         ctx.player2.winCount++;
 
     // --- L: mo dialog Save, T: mo dialog Load ---
-    if (IsKeyPressed(KEY_L) && ctx.saveLoadMode == AppContext::SaveLoadMode::NONE) {
+    if (IsKeyPressed(KEY_L) && ctx.saveLoadMode == AppContext::SaveLoadMode::NONE)
+    {
         ctx.saveLoadMode = AppContext::SaveLoadMode::SAVING;
         ctx.saveLoadInput.clear();
         ctx.saveLoadMsg.clear();
     }
-    if (IsKeyPressed(KEY_T) && ctx.saveLoadMode == AppContext::SaveLoadMode::NONE) {
+    if (IsKeyPressed(KEY_T) && ctx.saveLoadMode == AppContext::SaveLoadMode::NONE)
+    {
         ctx.saveLoadMode = AppContext::SaveLoadMode::LOADING;
         ctx.saveLoadInput.clear();
         ctx.saveLoadMsg.clear();
@@ -460,99 +473,18 @@ void UpdateGameplay(AppContext& ctx) {
         Rectangle rect = { (float)(SCREEN_W - BTN_SETTINGS_OFFSET),
                              (float)BTN_BACK_Y, (float)BTN_MAX_W, (float)BTN_BACK_H };
         if (CheckCollisionPointRec(mouse, rect)
-            && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
             ctx.prevScreen = SCREEN_GAMEPLAY; ctx.screen = SCREEN_SETTINGS;
         }
     }
 }
 
 // ============================================================
-//  DrawExitConfirmDialog
+//  DrawSaveLoadDialog
 // ============================================================
-static void DrawExitConfirmDialog(const AppContext& ctx) {
-    if (!ctx.showExitConfirm) return;
-
-    float t = (float)GetTime();
-    float glow = (sinf(t * 4.0f) + 1.0f) / 2.0f;
-
-    // Nền mờ toàn màn hình
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 180 });
-
-    // Panel chính
-    int pw = 700, ph = 280;
-    int px = GetScreenWidth() / 2 - pw / 2;
-    int py = GetScreenHeight() / 2 - ph / 2;
-
-    // Bóng đổ panel
-    DrawRectangle(px + 6, py + 6, pw, ph, { 0, 0, 0, 80 });
-    // Nền panel tối
-    DrawRectangle(px, py, pw, ph, { 15, 12, 8, 230 });
-    // Viền ngoài vàng nhấp nháy
-    unsigned char ba = (unsigned char)(160 + glow * 60);
-    DrawRectangleLinesEx({ (float)px, (float)py, (float)pw, (float)ph }, 3,
-        { 200, 170, 80, ba });
-    // Viền trong mờ
-    DrawRectangleLinesEx({ (float)(px + 6), (float)(py + 6), (float)(pw - 12), (float)(ph - 12) }, 1,
-        { 200, 170, 80, (unsigned char)(ba / 2) });
-
-    // === Tiêu đề ===
-    const char* title = "EXIT GAME";
-    unsigned char tb = (unsigned char)(200 + glow * 55);
-    Color titleCol = { 255, 100, 80, tb };
-    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
-    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2 + 2, py + 30 + 2, FONT_SCALE_LG, { 0, 0, 0, 180 });
-    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2, py + 30, FONT_SCALE_LG, titleCol);
-
-    // === Dòng cảnh báo ===
-    const char* line1 = "Your progress will not be saved";
-    int l1W = (int)(strlen(line1) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-    DrawPixelText(line1, GetScreenWidth() / 2 - l1W / 2, py + 95, FONT_SCALE_SM,
-        { 220, 200, 160, 230 });
-
-    const char* line2 = "Are you sure";
-    int l2W = (int)(strlen(line2) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-    DrawPixelText(line2, GetScreenWidth() / 2 - l2W / 2, py + 130, FONT_SCALE_SM,
-        { 200, 190, 150, 200 });
-
-    // === Nút YES / NO ===
-    int btnW = 200, btnH = 50;
-    int btnY = py + ph - 80;
-    int btnYesX = px + pw / 2 - btnW - 30;
-    int btnNoX = px + pw / 2 + 30;
-
-    // --- Nút YES ---
-    bool yesSelected = (ctx.exitConfirmSelected == 0);
-    {
-        Color bgCol = yesSelected ? Color{ 140, 40, 30, 230 } : Color{ 40, 30, 20, 200 };
-        DrawRectangle(btnYesX, btnY, btnW, btnH, bgCol);
-
-        unsigned char borderA = yesSelected ? (unsigned char)(180 + glow * 75) : (unsigned char)120;
-        Color borderCol = yesSelected ? Color{ 255, 100, 80, borderA } : Color{ 150, 130, 80, borderA };
-        DrawRectangleLinesEx({ (float)btnYesX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
-
-        const char* yesText = "YES";
-        int yw = (int)(strlen(yesText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
-        Color yesCol = yesSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow * 55) } : Color{ 180, 160, 120, 200 };
-        DrawPixelText(yesText, btnYesX + btnW / 2 - yw / 2, btnY + 12, FONT_SCALE_MD, yesCol);
-    }
-
-    // --- Nút NO ---
-    bool noSelected = (ctx.exitConfirmSelected == 1);
-    {
-        Color bgCol = noSelected ? Color{ 30, 80, 50, 230 } : Color{ 40, 30, 20, 200 };
-        DrawRectangle(btnNoX, btnY, btnW, btnH, bgCol);
-
-        unsigned char borderA = noSelected ? (unsigned char)(180 + glow * 75) : (unsigned char)120;
-        Color borderCol = noSelected ? Color{ 100, 255, 120, borderA } : Color{ 150, 130, 80, borderA };
-        DrawRectangleLinesEx({ (float)btnNoX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
-
-        const char* noText = "NO";
-        int nw = (int)(strlen(noText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
-        Color noCol = noSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow * 55) } : Color{ 180, 160, 120, 200 };
-        DrawPixelText(noText, btnNoX + btnW / 2 - nw / 2, btnY + 12, FONT_SCALE_MD, noCol);
-    }
-}
-static void DrawSaveLoadDialog(const AppContext& ctx) {
+static void DrawSaveLoadDialog(const AppContext& ctx)
+{
     if (ctx.saveLoadMode == AppContext::SaveLoadMode::NONE) return;
 
     float t = (float)GetTime();
@@ -561,12 +493,12 @@ static void DrawSaveLoadDialog(const AppContext& ctx) {
     bool isSave = (ctx.saveLoadMode == AppContext::SaveLoadMode::SAVING);
 
     // Nền mờ toàn màn hình
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
+    DrawRectangle(0, 0, 1920, 1080, { 0, 0, 0, 160 });
 
     // Panel
     int pw = 680, ph = 240;
-    int px = GetScreenWidth() / 2 - pw / 2;
-    int py = GetScreenHeight() / 2 - ph / 2;
+    int px = 620;
+    int py = 420;
 
     DrawRectangle(px + 6, py + 6, pw, ph, { 0, 0, 0, 60 });
     DrawRectangle(px, py, pw, ph, { 0, 0, 0, 200 });
@@ -577,21 +509,21 @@ static void DrawSaveLoadDialog(const AppContext& ctx) {
         { 200, 170, 80, (unsigned char)(ba / 2) });
 
     // Tiêu đề
-    const char* title = isSave ? "SAVE GAME" : "LOAD GAME";
+    const char* title = isSave
+        ? getText("Gameplay.save_game", *ctx.curLanguage)
+        : getText("Gameplay.load_game", *ctx.curLanguage);
     unsigned char tb = (unsigned char)(200 + glow * 55);
     Color titleCol = { 255, 220, 100, tb };
-    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
-    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2, py + 28, FONT_SCALE_LG, titleCol);
+    DrawPixelText(title, 852, py + 28, FONT_SCALE_LG, titleCol);
 
     // Label hướng dẫn
-    const char* prompt = "Enter filename (no spaces):";
-    int pW = (int)(strlen(prompt) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-    DrawPixelText(prompt, GetScreenWidth() / 2 - pW / 2, py + 95, FONT_SCALE_SM,
+    const char* prompt = getText("Gameplay.enter_filename_no_spaces", *ctx.curLanguage);
+    DrawPixelText(prompt, 710, py + 95, FONT_SCALE_SM,
         { 200, 190, 150, 220 });
 
     // Ô nhập tên file
     int boxW = 480, boxH = 46;
-    int boxX = GetScreenWidth() / 2 - boxW / 2;
+    int boxX = 720;
     int boxY = py + 130;
     DrawRectangle(boxX, boxY, boxW, boxH, { 15, 12, 5, 220 });
     DrawRectangleLinesEx({ (float)boxX, (float)boxY, (float)boxW, (float)boxH }, 2,
@@ -605,22 +537,23 @@ static void DrawSaveLoadDialog(const AppContext& ctx) {
 
     // Con trỏ nhấp nháy
     float blink = (sinf(t * 5.0f) + 1.0f) / 2.0f;
-    if (blink > 0.4f) {
+    if (blink > 0.4f)
+    {
         int curX = boxX + 14 + (int)(ctx.saveLoadInput.size() * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
         DrawRectangle(curX, boxY + 8, 3, FONT_GLYPH_H * FONT_SCALE_SM, { 255, 220, 80, 220 });
     }
 
     // Hint ENTER / ESC
-    const char* hint = "ENTER  Confirm          ESC  Cancel";
-    int hW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
-    DrawPixelText(hint, GetScreenWidth() / 2 - hW / 2, py + ph - 34, 2,
+    const char* hint = getText("Gameplay.enter_confirm_esc_cancel", *ctx.curLanguage);
+    DrawPixelText(hint, 780, py + ph - 34, 2,
         { 150, 140, 100, 160 });
 }
 
 // ============================================================
 //  DrawGameplay
 // ============================================================
-void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
+void DrawGameplay(const AppContext& ctx, const TextureBank& tex)
+{
     float t = (float)GetTime();
 
     DrawFullscreenTexture(tex.gameplayBg);
@@ -638,9 +571,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
         GetCharTexture(tex, ctx.player1.character, true),
         CHAR_LEFT_X + 70, CHAR_Y + 70,
         p1Turn, t,
-        GetCharName(ctx.player1.character),
+        GetCharName(ctx.player1.character, *ctx.curLanguage),
         ctx.player1.moveCount, ctx.player1.winCount,
         330,
+        *ctx.curLanguage,
         ctx.player1.character
     );
 
@@ -652,9 +586,10 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
         GetCharTexture(tex, p2CharIndex, false),
         CHAR_RIGHT_X + 150, CHAR_Y + 70,
         p2Turn, t,
-        GetCharName(p2CharIndex),
+        GetCharName(p2CharIndex, *ctx.curLanguage),
         ctx.player2.moveCount, ctx.player2.winCount,
         SCREEN_W - 450,
+        *ctx.curLanguage,
         p2CharIndex
     );
 
@@ -666,9 +601,9 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
         ctx.cursorX, ctx.cursorY);
 
     // --- Ten nguoi choi ---
-    const std::string& nameL = ctx.player1.name.empty() ? "PLAYER 1" : ctx.player1.name;
+    const std::string& nameL = ctx.player1.name.empty() ? getText("Gameplay.player_1", *ctx.curLanguage) : ctx.player1.name;
     const std::string& nameR = ctx.player2.name.empty()
-        ? (ctx.playWithBot ? "BOT" : "PLAYER 2")
+        ? (ctx.playWithBot ? getText("Gameplay.bot", *ctx.curLanguage) : getText("Gameplay.player_2", *ctx.curLanguage))
         : ctx.player2.name;
     DrawPixelText(nameL.c_str(), HUD_PLAYER1_X + 40, HUD_Y, FONT_SCALE_MD, WHITE);
     DrawPixelText(nameR.c_str(), HUD_PLAYER2_X, HUD_Y, FONT_SCALE_MD, WHITE);
@@ -678,19 +613,22 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
         DrawTimerText(ctx.turnTimer, t);
 
     // --- Man hinh ket thuc ---
-    if (ctx.gameState.status != GameStatus::ONGOING) {
+    if (ctx.gameState.status != GameStatus::ONGOING)
+    {
         const char* msg = "";
-        if (ctx.gameState.status == GameStatus::WIN_X) msg = "X WINS!";
-        else if (ctx.gameState.status == GameStatus::WIN_O) msg = "O WINS!";
-        else if (ctx.gameState.status == GameStatus::DRAW)  msg = "DRAW!";
+        if (ctx.gameState.status == GameStatus::WIN_X) msg = getText("Gameplay.x_wins", *ctx.curLanguage);
+        else if (ctx.gameState.status == GameStatus::WIN_O) msg = getText("Gameplay.o_wins", *ctx.curLanguage);
+        else if (ctx.gameState.status == GameStatus::DRAW)  msg = getText("Gameplay.draw", *ctx.curLanguage);
         // Overlay toi
-        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 160 });
+        DrawRectangle(0, 0, 1920, 1080, { 0, 0, 0, 160 });
 
         // --- Ve lai highlight duong thang SAU overlay de no hien tren cung ---
-        if (ctx.gameState.winLineCount > 0) {
+        if (ctx.gameState.winLineCount > 0)
+        {
             float pulse = (sinf(t * 6.0f) + 1.0f) / 2.0f;
 
-            for (int i = 0; i < ctx.gameState.winLineCount; i++) {
+            for (int i = 0; i < ctx.gameState.winLineCount; i++)
+            {
                 int drawX = startX + ctx.gameState.winLine[i].column * CELL_SIZE;
                 int drawY = (startY + 20) + ctx.gameState.winLine[i].row * CELL_SIZE;
 
@@ -706,7 +644,8 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
             }
 
             // Ve lai quan co tren o thang
-            for (int i = 0; i < ctx.gameState.winLineCount; i++) {
+            for (int i = 0; i < ctx.gameState.winLineCount; i++)
+            {
                 int r = ctx.gameState.winLine[i].row;
                 int c = ctx.gameState.winLine[i].column;
                 Player cell = ctx.gameState.board.cell[r * BOARD_SIZE + c];
@@ -720,17 +659,15 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
             }
         }
 
-        int msgW = (int)(strlen(msg) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_XL);
-        DrawPixelText(msg, GetScreenWidth() / 2 - msgW / 2 + 4, 154,
+        DrawPixelText(msg, 844, 154,
             FONT_SCALE_XL, { 0, 0, 0, 140 });
-        DrawPixelText(msg, GetScreenWidth() / 2 - msgW / 2, 150,
+        DrawPixelText(msg, 840, 150,
             FONT_SCALE_XL, GOLD);
 
-        const char* hint = "Press ENTER or click HOME to return";
-        int hintW = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
+        const char* hint = getText("Gameplay.press_enter_or_click_home_to_return", *ctx.curLanguage);
         DrawPixelText(hint,
-            GetScreenWidth() / 2 - hintW / 2,
-            GetScreenHeight() / 2 + 400,
+            700,
+            940,
             FONT_SCALE_MD, WHITE);
     }
 
@@ -745,23 +682,23 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
 
     // --- Goi y phim ---
     int barH = 30;
-    DrawRectangle(0, GetScreenHeight() - barH,
-        GetScreenWidth(), barH, { 0,0,0,200 });
-    DrawPixelText("L  SAVE                                        T  LOAD",
-        700, GetScreenHeight() - 30, FONT_SCALE_SM - 1, WHITE);
+    DrawRectangle(0, 1050,
+        1920, barH, { 0,0,0,200 });
+    DrawPixelText(getText("Gameplay.l_save_t_load", *ctx.curLanguage),
+        700, 1050, FONT_SCALE_SM - 1, WHITE);
 
     // --- Thong bao ket qua save/load ---
-    if (ctx.saveLoadMsgTimer > 0.0f && !ctx.saveLoadMsg.empty()) {
+    if (ctx.saveLoadMsgTimer > 0.0f && !ctx.saveLoadMsg.empty())
+    {
         float alpha01 = ctx.saveLoadMsgTimer > 0.4f ? 1.0f : ctx.saveLoadMsgTimer / 0.4f;
         unsigned char ma = (unsigned char)(220 * alpha01);
         bool isErr = (ctx.saveLoadMsg.find("FAILED") != std::string::npos ||
             ctx.saveLoadMsg.find("NOT FOUND") != std::string::npos);
         Color mc = isErr ? Color{ 255, 80, 80, ma } : Color{ 120, 255, 120, ma };
-        int mW = (int)(ctx.saveLoadMsg.size() * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
-        DrawRectangle(0, GetScreenHeight() - 60, GetScreenWidth(), 26, { 0,0,0,(unsigned char)(140 * alpha01) });
+        DrawRectangle(0, 1020, 1920, 26, { 0,0,0,(unsigned char)(140 * alpha01) });
         DrawPixelText(ctx.saveLoadMsg.c_str(),
-            GetScreenWidth() / 2 - mW / 2,
-            GetScreenHeight() - 58,
+            850,
+            1022,
             FONT_SCALE_SM, mc);
     }
 
@@ -769,5 +706,86 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
     DrawSaveLoadDialog(ctx);
 
     // --- Dialog xác nhận thoát ---
-    DrawExitConfirmDialog(ctx);
+    if (ctx.showExitConfirm)
+    {
+        float t0 = (float)GetTime();
+        float glow0 = (sinf(t0 * 4.0f) + 1.0f) / 2.0f;
+
+        // Nền mờ toàn màn hình
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 180 });
+
+        // Panel chính
+        int pw = 700, ph = 280;
+        int px = GetScreenWidth() / 2 - pw / 2;
+        int py = GetScreenHeight() / 2 - ph / 2;
+
+        // Bóng đổ panel
+        DrawRectangle(px + 6, py + 6, pw, ph, { 0, 0, 0, 80 });
+        // Nền panel tối
+        DrawRectangle(px, py, pw, ph, { 15, 12, 8, 230 });
+        // Viền ngoài vàng nhấp nháy
+        unsigned char ba0 = (unsigned char)(160 + glow0 * 60);
+        DrawRectangleLinesEx({ (float)px, (float)py, (float)pw, (float)ph }, 3,
+            { 200, 170, 80, ba0 });
+        // Viền trong mờ
+        DrawRectangleLinesEx({ (float)(px + 6), (float)(py + 6), (float)(pw - 12), (float)(ph - 12) }, 1,
+            { 200, 170, 80, (unsigned char)(ba0 / 2) });
+
+        // === Tiêu đề ===
+        const char* title0 = getText("Gameplay.exit_title", *ctx.curLanguage);
+        unsigned char tb0 = (unsigned char)(200 + glow0 * 55);
+        Color titleCol0 = { 255, 100, 80, tb0 };
+        int tW0 = (int)(GetUTF8Length(title0) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
+        DrawPixelText(title0, GetScreenWidth() / 2 - tW0 / 2 + 2, py + 30 + 2, FONT_SCALE_LG, { 0, 0, 0, 180 });
+        DrawPixelText(title0, GetScreenWidth() / 2 - tW0 / 2, py + 30, FONT_SCALE_LG, titleCol0);
+
+        // === Dòng cảnh báo ===
+        const char* line1 = getText("Gameplay.exit_warn", *ctx.curLanguage);
+        int l1W = (int)(GetUTF8Length(line1) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
+        DrawPixelText(line1, GetScreenWidth() / 2 - l1W / 2, py + 95, FONT_SCALE_SM,
+            { 220, 200, 160, 230 });
+
+        const char* line2 = getText("Gameplay.exit_confirm", *ctx.curLanguage);
+        int l2W = (int)(GetUTF8Length(line2) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
+        DrawPixelText(line2, GetScreenWidth() / 2 - l2W / 2, py + 130, FONT_SCALE_SM,
+            { 200, 190, 150, 200 });
+
+        // === Nút YES / NO ===
+        int btnW = 200, btnH = 50;
+        int btnY = py + ph - 80;
+        int btnYesX = px + pw / 2 - btnW - 30;
+        int btnNoX = px + pw / 2 + 30;
+
+        // --- Nút YES ---
+        bool yesSelected = (ctx.exitConfirmSelected == 0);
+        {
+            Color bgCol = yesSelected ? Color{ 140, 40, 30, 230 } : Color{ 40, 30, 20, 200 };
+            DrawRectangle(btnYesX, btnY, btnW, btnH, bgCol);
+
+            unsigned char borderA = yesSelected ? (unsigned char)(180 + glow0 * 75) : (unsigned char)120;
+            Color borderCol = yesSelected ? Color{ 255, 100, 80, borderA } : Color{ 150, 130, 80, borderA };
+            DrawRectangleLinesEx({ (float)btnYesX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
+
+            const char* yesText = getText("Gameplay.yes", *ctx.curLanguage);
+            int yw = (int)(GetUTF8Length(yesText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
+            Color yesCol = yesSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow0 * 55) } : Color{ 180, 160, 120, 200 };
+            DrawPixelText(yesText, btnYesX + btnW / 2 - yw / 2, btnY + 12, FONT_SCALE_MD, yesCol);
+        }
+
+        // --- Nút NO ---
+        bool noSelected = (ctx.exitConfirmSelected == 1);
+        {
+            Color bgCol = noSelected ? Color{ 30, 80, 50, 230 } : Color{ 40, 30, 20, 200 };
+            DrawRectangle(btnNoX, btnY, btnW, btnH, bgCol);
+
+            unsigned char borderA = noSelected ? (unsigned char)(180 + glow0 * 75) : (unsigned char)120;
+            Color borderCol = noSelected ? Color{ 100, 255, 120, borderA } : Color{ 150, 130, 80, borderA };
+            DrawRectangleLinesEx({ (float)btnNoX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
+
+            const char* noText = getText("Gameplay.no", *ctx.curLanguage);
+            int nw = (int)(GetUTF8Length(noText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
+            Color noCol = noSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow0 * 55) } : Color{ 180, 160, 120, 200 };
+            DrawPixelText(noText, btnNoX + btnW / 2 - nw / 2, btnY + 12, FONT_SCALE_MD, noCol);
+        }
+    }
 }

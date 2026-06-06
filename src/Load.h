@@ -112,6 +112,10 @@ inline bool jsonToGameState(const json& root, GameState& outState) {
 			parsed.winLineCount = count;
 		}
 	}
+	parsed.saveTime = 0;
+	if (root.contains("saveTime") && root["saveTime"].is_number_integer()) {
+		parsed.saveTime = root["saveTime"].get<long long>();
+	}
 
 	outState = parsed;
 	return true;

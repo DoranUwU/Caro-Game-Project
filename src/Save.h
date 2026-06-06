@@ -5,6 +5,7 @@
 #include "raylib.h"
 #include <nlohmann/json.hpp>
 #include <string>
+#include <ctime>
 
 using json = nlohmann::json;
 
@@ -30,6 +31,8 @@ inline json gameStateToJson(const GameState& state) {
 		winLine.push_back({ {"row", state.winLine[i].row}, {"column", state.winLine[i].column} });
 	}
 	root["winLine"] = winLine;
+
+	root["saveTime"] = state.saveTime;
 
 	return root;
 }

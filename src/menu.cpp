@@ -9,12 +9,12 @@ struct MenuItem { const char* text; int x; int y; };
 
 static const MenuItem menuItems[] =
 {
-    { "New Game",  1320, 185 },
-    { "Load Game", 1300, 320 },
-    { "Settings",  1310, 450 },
-    { "Help",      1380, 580 },
-    { "About Us",  1320, 710 },
-    { "Exit",      1380, 830 }
+    { "Menu.new_game",  1300, 185 },
+    { "Menu.load_game", 1300, 318 },
+    { "Menu.settings",  1300, 446 },
+    { "Menu.help",      1300, 576 },
+    { "Menu.about_us",  1300, 704 },
+    { "Menu.exit",      1300, 826 }
 };
 static const int itemCount = (int)(sizeof(menuItems) / sizeof(menuItems[0]));
 
@@ -83,14 +83,14 @@ void DrawMenu(const AppContext& ctx, const TextureBank& tex)
             Color glowColor = { 255, 220, 120, (unsigned char)(200 + glow * 55) };
             int   scale = (int)(FONT_SCALE_LG + glow);
 
-            DrawPixelText(menuItems[i].text,
+            DrawPixelText(getText(menuItems[i].text,*ctx.curLanguage),
                 menuItems[i].x + 3, menuItems[i].y + 3, scale, BLACK);
-            DrawPixelText(menuItems[i].text,
+            DrawPixelText(getText(menuItems[i].text,*ctx.curLanguage),
                 menuItems[i].x, menuItems[i].y, scale, glowColor);
         }
         else
         {
-            DrawPixelTextStyled(menuItems[i].text,
+            DrawPixelTextStyled(getText(menuItems[i].text,*ctx.curLanguage),
                 menuItems[i].x, menuItems[i].y, FONT_SCALE_LG);
         }
     }

@@ -18,5 +18,10 @@ void DrawGlyph(const Glyph& g, int x, int y, int scale, Color color);
 void DrawPixelText(string text, int x, int y, int scale, Color color);
 void DrawPixelTextStyled(string text, int x, int y, int scale);
 void DrawPixelTextTitle(string text, int x, int y, int scale);
+int GetUTF8Length(const string& text);
+
+// Initialize/Unload unicode fallback font (place a TTF under assets/, e.g. assets/NotoSans-Regular.ttf)
+void InitTextRenderer();
+void UnloadTextRenderer();
 
 #endif // TEXT_RENDERER_H

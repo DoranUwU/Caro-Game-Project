@@ -4,13 +4,26 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <vector>
+
+static void DrawAboutTitle(const char* title, float glow)
+{
+    Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
+    DrawPixelText(title, 764, 58, FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 760, 54, FONT_SCALE_XL, titleCol);
+
+    // Đường kẻ trang trí
+    unsigned char lineA = (unsigned char)(120 + glow * 80);
+    DrawRectangle(760, 133, 400, 2, { 255, 220, 100, lineA });
+    DrawRectangle(780, 139, 360, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
+}
 
 void DrawAboutUsOverlay(const AppContext& ctx)
 {
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle("ABOUT US", glow);
+    DrawAboutTitle(getText("About.title",*ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect(0.64f, 0.74f);
     DrawClassicPanel(panel, glow);
@@ -20,14 +33,14 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     float lx = panel.x + 60.0f;
 
     // ---- Instructor ----
-    DrawPixelText("INSTRUCTOR", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("About.instructor",*ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 120, 70);
     curY += 14;
 
     {
-        const char* name = "Mr. Truong Toan Thinh";
-        int nw = (int)(strlen(name) * 8 * FONT_SCALE_SM);
+        const char* name = getText("About.instructor_name",*ctx.curLanguage);
+        int nw = (int)(GetUTF8Length(name) * 8 * FONT_SCALE_SM);
         // Icon hình thầy (dùng ký tự giả lập)
         DrawPixelText("*", (int)(lx), (int)curY, FONT_SCALE_SM, { 255, 200, 80, 180 });
         DrawPixelText(name, (int)(lx + 40), (int)curY, FONT_SCALE_SM, { 255, 230, 140, 255 });
@@ -37,7 +50,7 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     curY += 10;
 
     // ---- Team Members ----
-    DrawPixelText("DEVELOPMENT TEAM", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("About.development_team",*ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 120, 70);
     curY += 16;
@@ -49,10 +62,10 @@ void DrawAboutUsOverlay(const AppContext& ctx)
         const char* roleDetail;
     };
 
-    Member team[] = {
-        { "Pham Anh Tuan",  "24120238", "UI",             "Interface & Graphics"    },
-        { "Le Bao Minh",    "24120200", "LOGIC & BOT",    "Game Logic & AI"         },
-        { "Vo Hoang Phuc",  "24120123", "SAVE / SOUND",   "Load Game & Sound FX"    },
+    std::vector<Member> team = {
+        { getText("About.member_1_name",*ctx.curLanguage),  getText("About.member_1_id",*ctx.curLanguage), getText("About.member_1_role",*ctx.curLanguage),  getText("About.member_1_roledetail",*ctx.curLanguage)    },
+        { getText("About.member_2_name",*ctx.curLanguage),  getText("About.member_2_id",*ctx.curLanguage), getText("About.member_2_role",*ctx.curLanguage),  getText("About.member_2_roledetail",*ctx.curLanguage)         },
+        { getText("About.member_3_name",*ctx.curLanguage),  getText("About.member_3_id",*ctx.curLanguage), getText("About.member_3_role",*ctx.curLanguage),  getText("About.member_3_roledetail",*ctx.curLanguage)    }
     };
 
     Color roleColors[] = {
@@ -79,7 +92,7 @@ void DrawAboutUsOverlay(const AppContext& ctx)
         DrawPixelText(idBuf, (int)(lx + 40), (int)curY, 2, { 180, 170, 140, 200 });
 
         // Role badge (hình chữ nhật nhỏ)
-        int roleW = (int)(strlen(m.role) * 8 * 2) + 16;
+        int roleW = (int)(GetUTF8Length(m.role) * 6 * 2) + 16;
         int roleX = (int)(lx + 260);
         DrawRectangle(roleX, (int)curY - 2, roleW, 20, { 30, 28, 20, 200 });
         DrawRectangleLinesEx({ (float)roleX, (float)(curY - 2), (float)roleW, 20.0f },
@@ -104,8 +117,8 @@ void DrawAboutUsOverlay(const AppContext& ctx)
     {
         DrawPanelDivider(lx, panel.y + panel.height - 55, panel.width - 120, 50);
 
-        const char* ver = "CARO GAME  v1.0  -  HCMUS  2024";
-        int vw = (int)(strlen(ver) * 8 * 2);
+        const char* ver = getText("About.version",*ctx.curLanguage);
+        int vw = (int)(GetUTF8Length(ver) * 6 * 2);
         DrawPixelText(ver,
             (int)(panel.x + panel.width / 2 - vw / 2),
             (int)(panel.y + panel.height - 42),

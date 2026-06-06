@@ -2,6 +2,8 @@
 #define GAMESTATE_H
 
 #include "Board.h"
+#include "Player.h"
+#include "Position.h"
 
 enum class GameStatus {
     ONGOING,
@@ -21,6 +23,8 @@ struct GameState {
 
     Position winLine[MAX_WIN_LINE];
     int winLineCount = 0;
+
+    long long saveTime = 0;
 };
 
 

@@ -2,13 +2,27 @@
 #include "TextRenderer.h"
 #include "Constants.h"
 #include <math.h>
+#include <vector>
+#include <cstring>
+
+static void DrawHelpTitle(const char* title, float glow)
+{
+    Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
+    DrawPixelText(title, 854, 62, FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 850, 58, FONT_SCALE_XL, titleCol);
+
+    // Đường kẻ trang trí
+    unsigned char lineA = (unsigned char)(120 + glow * 80);
+    DrawRectangle(760, 140, 400, 2, { 255, 220, 100, lineA });
+    DrawRectangle(780, 146, 360, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
+}
 
 void DrawHelpOverlay(const AppContext& ctx)
 {
     float t = (float)GetTime();
     float glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
 
-    DrawOverlayTitle("HELP", glow);
+    DrawHelpTitle(getText("Help.title", *ctx.curLanguage), glow);
 
     Rectangle panel = GetOverlayPanelRect(0.66f, 0.72f);
     DrawClassicPanel(panel, glow);
@@ -20,7 +34,7 @@ void DrawHelpOverlay(const AppContext& ctx)
     float rx = panel.x + panel.width / 2.0f + 20.0f;
 
     // ---- ABOUT THE GAME ----
-    DrawPixelText("ABOUT THE GAME", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("Help.about_the_game", *ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 80, 70);
     curY += 12;
@@ -32,7 +46,15 @@ void DrawHelpOverlay(const AppContext& ctx)
         "on a 15x15 grid. Diagonals,",
         "horizontal and vertical all count!"
     };
-    for (auto& line : desc)
+    vector<string> gameInfo;
+    
+    gameInfo.push_back(getText("Help.gameinfo1", *ctx.curLanguage));
+    gameInfo.push_back(getText("Help.gameinfo2", *ctx.curLanguage));
+    gameInfo.push_back(getText("Help.gameinfo3", *ctx.curLanguage));
+    gameInfo.push_back(getText("Help.gameinfo4", *ctx.curLanguage));
+    gameInfo.push_back(getText("Help.gameinfo5", *ctx.curLanguage));
+
+    for (auto& line : gameInfo)
     {
         DrawPixelText(line, (int)lx, (int)curY, 2, { 210, 200, 170, 220 });
         curY += 22;
@@ -41,20 +63,20 @@ void DrawHelpOverlay(const AppContext& ctx)
     curY += 14;
 
     // ---- HOW TO PLAY ----
-    DrawPixelText("HOW TO PLAY", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("Help.how_to_play", *ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 80, 70);
     curY += 12;
 
     struct Row { const char* key; const char* desc; };
     Row moves[] = {
-        { "W / UP",    "Move cursor up"       },
-        { "S / DOWN",  "Move cursor down"     },
-        { "A / LEFT",  "Move cursor left"     },
-        { "D / RIGHT", "Move cursor right"    },
-        { "ENTER",     "Place your piece"     },
-        { "SPACE",     "Place your piece"     },
-        { "MOUSE",     "Click to place piece" },
+        { "W / UP",    getText("Help.move_cursor_up", *ctx.curLanguage)         },
+        { "S / DOWN",  getText("Help.move_cursor_down", *ctx.curLanguage)       },
+        { "A / LEFT",  getText("Help.move_cursor_left", *ctx.curLanguage)       },
+        { "D / RIGHT", getText("Help.move_cursor_right", *ctx.curLanguage)      },
+        { "ENTER",     getText("Help.place_your_piece", *ctx.curLanguage)       },
+        { "SPACE",     getText("Help.place_your_piece", *ctx.curLanguage)       },
+        { "MOUSE",     getText("Help.click_to_place_piece", *ctx.curLanguage)   },
     };
 
     float keyX = lx;
@@ -69,14 +91,14 @@ void DrawHelpOverlay(const AppContext& ctx)
     curY += 14;
 
     // ---- SAVE / LOAD ----
-    DrawPixelText("SAVE  &  LOAD", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("Help.save_load", *ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 80, 70);
     curY += 12;
 
     Row saves[] = {
-        { "L", "Save current game"  },
-        { "T", "Load saved game"    },
+        { "L", getText("Help.save_current_game", *ctx.curLanguage)    },
+        { "T", getText("Help.load_saved_game", *ctx.curLanguage)    },
     };
     for (auto& row : saves)
     {
@@ -88,16 +110,15 @@ void DrawHelpOverlay(const AppContext& ctx)
     curY += 14;
 
     // ---- TIMER ----
-    DrawPixelText("TIMER", (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
+    DrawPixelText(getText("Help.timer", *ctx.curLanguage), (int)lx, (int)curY, FONT_SCALE_SM, { 255, 200, 80, 220 });
     curY += 32;
     DrawPanelDivider(lx, curY, panel.width - 80, 70);
     curY += 12;
 
-    const char* timerDesc[] = {
-        "Each player has 30 seconds",
-        "per turn. Time runs out?",
-        "The opponent wins!",
-    };
+    vector<string> timerDesc;
+    timerDesc.push_back(getText("Help.each_player_has_30_seconds", *ctx.curLanguage));
+    timerDesc.push_back(getText("Help.per_turn_time_runs_out", *ctx.curLanguage));
+    timerDesc.push_back(getText("Help.the_opponent_wins", *ctx.curLanguage));
     for (auto& line : timerDesc)
     {
         DrawPixelText(line, (int)lx, (int)curY, 2, { 210, 200, 170, 220 });

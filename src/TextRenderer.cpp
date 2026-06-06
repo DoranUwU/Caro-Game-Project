@@ -249,12 +249,12 @@ map<char, Glyph> font =
 "#####"}}},
 
 { 'a',{5,{
-"     ",
-" ### ",
-"    #",
-" ####",
-"#   #",
-"#   #",
+"     ",    
+" ### ",    
+"    #",    
+" ####",    
+"#   #",    
+"#   #",    
 " ####"}} },
 
 { 'b',{5,{
@@ -583,6 +583,10 @@ map<char, Glyph> font =
 
 };
 
+static Font unicodeFont;
+static bool unicodeFontLoaded = false;
+
+
 void DrawGlyph(const Glyph& g, int x, int y, int scale, Color color)
 {
     for (int r = 0; r < g.bitmap.size(); r++)
@@ -603,24 +607,33 @@ void DrawGlyph(const Glyph& g, int x, int y, int scale, Color color)
     }
 }
 
+// Unicode fallback font state (defined below)
+
 void DrawPixelText(string text, int x, int y, int scale, Color color)
 {
     int cursor = x;
-    for (char c : text)
+    const char *c_str = text.c_str();
+    int bytesProcessed = 0;
+    // Iterate through the UTF-8 string byte by byte
+    while (*c_str != '\0')
     {
-        char up = toupper(c);
+        // Decode the UTF-8 sequence into a single Unicode codepoint
+        int codepoint = GetCodepoint(c_str, &bytesProcessed);
 
-        if (font.find(up) == font.end())
-        {
-            cursor += scale * 6;
-            continue;
-        }
+                float fontSize = (float)scale * 10.0f;
+                Vector2 pos = { (float)cursor, (float)y };
 
-        Glyph g = font[up];
+                // Draw the specific Unicode glyph texture from the font atlas
+                DrawTextCodepoint(unicodeFont, codepoint, pos, fontSize, color);
 
-        DrawGlyph(g, cursor, y, scale, color);
+                // Advance cursor based on the TTF font's specific glyph width
+                GlyphInfo info = GetGlyphInfo(unicodeFont, codepoint);
+                cursor += 6 * scale;
+            
+        
 
-        cursor += (g.width + 1) * scale;
+        // Advance the string pointer by the number of bytes this codepoint occupied
+        c_str += bytesProcessed;
     }
 }
 
@@ -632,6 +645,52 @@ void DrawPixelTextStyled(string text, int x, int y, int scale)
     DrawPixelText(text, x + 3, y + 3, scale, shadow);
     DrawPixelText(text, x, y, scale, Color { 92, 64, 51, 255 }); 
 }
+
+// --------------------------------------------------
+// Unicode fallback font support
+// --------------------------------------------------
+
+void InitTextRenderer()
+{
+    if (unicodeFontLoaded) return;
+    
+    // LƯU Ý: Đảm bảo file .ttf này thực sự có hỗ trợ tiếng Việt (như Arial, Roboto, NotoSans...)
+    const char* path = "assets/Fairfax.ttf"; 
+    
+    std::vector<int> codepoints;
+
+    // 1. Basic Latin & Latin-1 Supplement (0x0020 - 0x00FF)
+    // Bao gồm các ký tự tiêu chuẩn và các dấu cơ bản: á, à, ã, ó, ò...
+    for (int i = 0x0020; i <= 0x00FF; i++) codepoints.push_back(i);
+
+    // 2. Latin Extended-A (0x0100 - 0x017F)
+    // Chứa chữ đ, Đ, và một số ký tự như ă, â, ê, ô...
+    for (int i = 0x0100; i <= 0x017F; i++) codepoints.push_back(i);
+
+    // 3. Latin Extended-B (0x0180 - 0x024F) 
+    // QUAN TRỌNG: Chứa các ký tự Ơ, ơ, Ư, ư và các biến thể mở rộng khác
+    for (int i = 0x0180; i <= 0x024F; i++) codepoints.push_back(i);
+
+    // 4. Latin Extended Additional (0x1E00 - 0x1EFF)
+    // Chứa các ký tự tổ hợp phức tạp nhất: ắ, ằ, ẳ, ẵ, ặ, ế, ề, ể, ễ, ệ, ố, hồ...
+    for (int i = 0x1E00; i <= 0x1EFF; i++) codepoints.push_back(i);
+
+    // Load font với danh sách các codepoint đã gom lại
+    unicodeFont = LoadFontEx(path, 60, codepoints.data(), codepoints.size());
+    
+    // Filter texture để chữ mượt hơn (tuỳ chọn)
+    SetTextureFilter(unicodeFont.texture, TEXTURE_FILTER_BILINEAR);
+
+    if (unicodeFont.glyphCount > 0) unicodeFontLoaded = true;
+}
+
+void UnloadTextRenderer()
+{
+    if (!unicodeFontLoaded) return;
+    UnloadFont(unicodeFont);
+    unicodeFontLoaded = false;
+}
+
 void DrawPixelTextTitle(string text, int x, int y, int scale)
 {
     Color highlightColor = {255, 242, 181, 255}; 
@@ -816,3 +875,18 @@ void DrawPixelTextTitle(string text, int x, int y, int scale)
         cursor += (g.width + 1) * scale;
     }
 }
+
+int GetUTF8Length(const string& text)
+{
+    int length = 0;
+    for (char c : text)
+    {
+        if ((c & 0xC0) != 0x80)
+        {
+            length++;
+        }
+    }
+    return length;
+}
+
+

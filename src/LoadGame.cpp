@@ -9,6 +9,10 @@
 #include <filesystem>
 #include <algorithm>
 #include <map>
+#include <ctime>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 static const int MAX_VISIBLE_SAVES = 6;
 
@@ -16,8 +20,27 @@ static const int MAX_VISIBLE_SAVES = 6;
 struct CachedPreview {
     bool valid = false;
     GameStatus status = GameStatus::ONGOING;
+    long long saveTime = 0;
 };
 static std::map<std::string, CachedPreview> cachedPreviews;
+
+inline std::time_t to_time_t(std::filesystem::file_time_type ftime)
+{
+    using namespace std::chrono;
+    auto sctp = time_point_cast<system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now() + system_clock::now());
+    return system_clock::to_time_t(sctp);
+}
+
+inline std::string FormatTimestamp(long long ts)
+{
+    if (ts == 0) return "";
+    std::time_t rawtime = (std::time_t)ts;
+    struct std::tm* timeinfo = std::localtime(&rawtime);
+    if (!timeinfo) return "";
+    char buffer[80];
+    std::strftime(buffer, sizeof(buffer), "%d/%m/%Y %H:%M:%S", timeinfo);
+    return std::string(buffer);
+}
 
 static Rectangle GetPanelRect()
 {
@@ -68,13 +91,18 @@ static void RefreshSaveFileList(AppContext& ctx)
 
     // Cache preview status cho mỗi file
     cachedPreviews.clear();
-    for (const auto& fname : ctx.saveFileList) {
+    for (const auto& e : entries) {
+        std::string fname = e.filename;
         std::string filepath = "saves/" + fname;
         GameState preview;
         CachedPreview cp;
         if (loadGameState(filepath.c_str(), preview)) {
             cp.valid = true;
             cp.status = preview.status;
+            cp.saveTime = preview.saveTime;
+            if (cp.saveTime == 0) {
+                cp.saveTime = (long long)to_time_t(e.lastWrite);
+            }
         }
         cachedPreviews[fname] = cp;
     }
@@ -190,23 +218,17 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
     DrawFullscreenTexture(tex.originBg);
 
     // --- Tiêu đề ---
-    const char* title = "LOAD GAME";
+    const char* title = getText("LoadGame.load_game", *ctx.curLanguage);
     float       glow = (sinf(t * 3.0f) + 1.0f) / 2.0f;
-    Color       titleCol = { 255, 220, 100,
-                             (unsigned char)(200 + glow * 55) };
-    int         tW = (int)(strlen(title) * 8 *  FONT_SCALE_XL);
-    int         tX = GetScreenWidth() / 2 - tW / 2;
+    Color       titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
 
-    DrawPixelText(title, tX + 4, PANEL_TITLE_Y + 4,  FONT_SCALE_XL, { 0, 0, 0, 160 });
-    DrawPixelText(title, tX, PANEL_TITLE_Y,  FONT_SCALE_XL, titleCol);
+    DrawPixelText(title, 760, 94,  FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, 764, 90,  FONT_SCALE_XL, titleCol);
 
     // --- Đường kẻ dưới tiêu đề ---
-    int lineY = PANEL_TITLE_Y +  FONT_SCALE_XL * 9 + 10;
-    int lineLen = 400;
-    int lineX = GetScreenWidth() / 2 - lineLen / 2;
     unsigned char lineA = (unsigned char)(120 + glow * 80);
-    DrawRectangle(lineX, lineY, lineLen, 2, { 255, 220, 100, lineA });
-    DrawRectangle(lineX + 20, lineY + 6, lineLen - 40, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
+    DrawRectangle(760, 172, 400, 2, { 255, 220, 100, lineA });
+    DrawRectangle(780, 178, 360, 1, { 255, 200, 80, (unsigned char)(lineA / 2) });
 
     // --- Panel ---
     Rectangle panel = GetPanelRect();
@@ -250,14 +272,14 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
         }
         contentY += 70.0f;
 
-        const char* noSave = "NO SAVE FILES FOUND";
-        int nsW = (int)(strlen(noSave) * 8 * 4);
+        const char* noSave = getText("LoadGame.no_save_files_found", *ctx.curLanguage);
+        int nsW = (int)(GetUTF8Length(noSave) * 6 * 4);
         DrawPixelText(noSave, (int)(cx - nsW / 2), (int)contentY,
             4, { 200, 80, 80, 220 });
 
         contentY += 60.0f;
-        const char* hint = "PLAY A GAME AND PRESS L TO SAVE";
-        int hW = (int)(strlen(hint) * 8 * 3);
+        const char* hint = getText("LoadGame.play_a_game_and_press_l_to_save", *ctx.curLanguage);
+        int hW = (int)(GetUTF8Length(hint) * 6 * 3);
         DrawPixelText(hint, (int)(cx - hW / 2), (int)contentY,
             3, { 150, 140, 110, 180 });
     }
@@ -265,8 +287,8 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
     {
         // --- Header: danh sách saves ---
         float headerY = panel.y + 30.0f;
-        const char* header = "SELECT A SAVE FILE";
-        int hdrW = (int)(strlen(header) * 8 * FONT_SCALE_SM);
+        const char* header = getText("LoadGame.select_a_save_file", *ctx.curLanguage);
+        int hdrW = (int)(GetUTF8Length(header) * 6 * FONT_SCALE_SM);
         DrawPixelText(header, (int)(cx - hdrW / 2), (int)headerY,
             FONT_SCALE_SM, { 200, 190, 150, 220 });
 
@@ -327,31 +349,45 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
             DrawPixelText(displayName.c_str(), (int)(listX + 60), (int)(listStartY + i * itemH + 14),
                 FONT_SCALE_SM, textCol);
 
-            // Trạng thái game (từ cache, không load file mỗi frame)
+            // Trạng thái game và thời gian đã lưu
             auto it = cachedPreviews.find(ctx.saveFileList[i]);
             if (it != cachedPreviews.end() && it->second.valid)
             {
-                const char* statusStr = "ONGOING";
+                const char* statusStr = getText("LoadGame.ongoing", *ctx.curLanguage);
                 Color statusCol = { 120, 200, 120, 200 };
-                if (it->second.status == GameStatus::WIN_X) { statusStr = "X WINS"; statusCol = { 255, 200, 80, 200 }; }
-                else if (it->second.status == GameStatus::WIN_O) { statusStr = "O WINS"; statusCol = { 255, 200, 80, 200 }; }
-                else if (it->second.status == GameStatus::DRAW) { statusStr = "DRAW"; statusCol = { 200, 150, 80, 200 }; }
+                if (it->second.status == GameStatus::WIN_X) { statusStr = getText("LoadGame.x_wins", *ctx.curLanguage); statusCol = { 255, 200, 80, 200 }; }
+                else if (it->second.status == GameStatus::WIN_O) { statusStr = getText("LoadGame.o_wins", *ctx.curLanguage); statusCol = { 255, 200, 80, 200 }; }
+                else if (it->second.status == GameStatus::DRAW) { statusStr = getText("LoadGame.draw", *ctx.curLanguage); statusCol = { 200, 150, 80, 200 }; }
 
-                int statusW = (int)(strlen(statusStr) * 8 * 2);
+                int statusW = (int)(GetUTF8Length(statusStr) * 6 * 2);
                 DrawPixelText(statusStr,
                     (int)(listX + listW - statusW - 20),
                     (int)(listStartY + i * itemH + 18),
                     2, isSelected ? Color{ 255, 240, 120, 255 } : statusCol);
+
+                // Hiển thị thời gian save (hoặc thời gian file) ở giữa dòng
+                if (it->second.saveTime > 0)
+                {
+                    std::string timeStr = FormatTimestamp(it->second.saveTime);
+                    DrawPixelText(timeStr.c_str(),
+                        (int)(listX + 520),
+                        (int)(listStartY + i * itemH + 18),
+                        2, isSelected ? Color{ 255, 240, 120, 255 } : Color{ 150, 140, 120, 200 });
+                }
             }
         }
 
         // Thêm thông tin nếu có nhiều file hơn MAX_VISIBLE
         if (fileCount > MAX_VISIBLE_SAVES)
         {
-            char moreStr[32];
-            snprintf(moreStr, sizeof(moreStr), "... and %d more", fileCount - MAX_VISIBLE_SAVES);
-            int mW = (int)(strlen(moreStr) * 8 * 2);
-            DrawPixelText(moreStr, (int)(cx - mW / 2),
+            std::string moreText = getText("LoadGame.and_more", *ctx.curLanguage);
+            size_t placeholderPos = moreText.find("{count}");
+            if (placeholderPos != std::string::npos)
+            {
+                moreText.replace(placeholderPos, 7, std::to_string(fileCount - MAX_VISIBLE_SAVES));
+            }
+            int mW = (int)(GetUTF8Length(moreText) * 6 * 2);
+            DrawPixelText(moreText.c_str(), (int)(cx - mW / 2),
                 (int)(listStartY + displayCount * itemH + 10),
                 2, { 150, 140, 110, 160 });
         }
@@ -370,17 +406,17 @@ void DrawLoadGame(const AppContext& ctx, const TextureBank& tex)
         unsigned char ba = (unsigned char)(160 + btnGlow * 80);
         DrawRectangleLinesEx(btnRect, 2, { 200, 170, 80, ba });
 
-        const char* btnLabel = "LOAD";
+        const char* btnLabel = getText("LoadGame.load", *ctx.curLanguage);
         Color btnTCol = { 255, 220, 100, (unsigned char)(200 + btnGlow * 55) };
-        int lblW = (int)(strlen(btnLabel) * 8 * 5);
+        int lblW = (int)(GetUTF8Length(btnLabel) * 6 * 5);
         DrawPixelText(btnLabel,
             (int)(btnX + btnW / 2 - lblW / 2),
             (int)(btnY + btnH / 2 - 5 * 4),
             5, btnTCol);
 
         // Hint
-        const char* hintText = "UP/DOWN Select   ENTER/CLICK Load";
-        int hw = (int)(strlen(hintText) * 8 * 2);
+        const char* hintText = getText("LoadGame.up_down_select_enter_click_load", *ctx.curLanguage);
+        int hw = (int)(GetUTF8Length(hintText) * 6 * 2);
         DrawPixelText(hintText,
             (int)(btnX + btnW / 2 - hw / 2),
             (int)(btnY + btnH + 10),

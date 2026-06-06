@@ -4,6 +4,7 @@
 #include "Constants.h"
 #include <math.h>
 #include <cstring>
+#include <vector>
 
 // ============================================================
 //  Layout: 2 card trái/phải chiếm phần lớn màn hình
@@ -12,13 +13,8 @@
 
 static void GetDifficultyRects(Rectangle& easyRect, Rectangle& hardRect)
 {
-    int sw = GetScreenWidth(), sh = GetScreenHeight();
-    int cardW = sw / 2 - 120;
-    int cardH = (int)(sh * 0.68f);
-    int cardY = sh / 2 - cardH / 2 + 30;
-
-    easyRect = { 80.0f,           (float)cardY, (float)cardW, (float)cardH };
-    hardRect = { (float)(sw / 2 + 40), (float)cardY, (float)cardW, (float)cardH };
+    easyRect = { 80.0f, 203.0f, 840.0f, 734.0f };
+    hardRect = { 1000.0f, 203.0f, 840.0f, 734.0f };
 }
 
 // ============================================================
@@ -28,8 +24,7 @@ static void DrawDifficultyCard(
     Texture2D sprite,
     const char* label,
     const char* sublabel,       
-    const char* desc[],         
-    int         descCount,
+    const std::vector<const char*>& desc,
     Rectangle   rect,
     bool        selected,
     bool        hovered,
@@ -117,7 +112,7 @@ static void DrawDifficultyCard(
     // --- Label (EASY / HARD) ---
     float textY = divY + 16.0f;
     int labelScale = 6;
-    int labelW = (int)(strlen(label) * (FONT_GLYPH_W + FONT_SPACING) * labelScale);
+    int labelW = (int)(GetUTF8Length(label) * (FONT_GLYPH_W + FONT_SPACING) * labelScale);
     int labelX = (int)(rect.x + rect.width / 2 - labelW / 2);
 
     Color labelCol;
@@ -137,7 +132,7 @@ static void DrawDifficultyCard(
 
     // --- Sublabel ---
     int subScale = 3;
-    int subW = (int)(strlen(sublabel) * (FONT_GLYPH_W + FONT_SPACING) * subScale);
+    int subW = (int)(GetUTF8Length(sublabel) * (FONT_GLYPH_W + FONT_SPACING) * subScale);
     int subX = (int)(rect.x + rect.width / 2 - subW / 2);
     Color subCol = selected
         ? Color{ accentColor.r, accentColor.g, accentColor.b, 180 }
@@ -147,9 +142,9 @@ static void DrawDifficultyCard(
 
     // --- Mô tả dòng ---
     int dScale = 2;
-    for (int i = 0; i < descCount; i++)
+    for (size_t i = 0; i < desc.size(); i++)
     {
-        int dW = (int)(strlen(desc[i]) * (FONT_GLYPH_W + FONT_SPACING) * dScale);
+        int dW = (int)(GetUTF8Length(desc[i]) * (FONT_GLYPH_W + FONT_SPACING) * dScale);
         int dX = (int)(rect.x + rect.width / 2 - dW / 2);
         Color dCol = selected
             ? Color{ 200, 190, 160, 200 }
@@ -202,20 +197,15 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     DrawFullscreenTexture(tex.originBg);
 
     // --- Tiêu đề ---
-    const char* title = "SELECT DIFFICULTY";
+    const char* title = getText("Difficulty.select_difficulty", *ctx.curLanguage);
     Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
-    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
-    int tX = GetScreenWidth() / 2 - tW / 2;
-    DrawPixelText(title, tX + 3, PANEL_TITLE_Y + 3, FONT_SCALE_LG, { 0, 0, 0, 140 });
-    DrawPixelText(title, tX, PANEL_TITLE_Y, FONT_SCALE_LG, titleCol);
+    DrawPixelText(title, 663, 93, FONT_SCALE_LG, { 0, 0, 0, 140 });
+    DrawPixelText(title, 660, 90, FONT_SCALE_LG, titleCol);
 
     // Đường kẻ dưới tiêu đề
-    int lineLen = 500;
-    int lineX = GetScreenWidth() / 2 - lineLen / 2;
-    int lineY = PANEL_TITLE_Y + FONT_SCALE_LG * (FONT_GLYPH_H + 1) + 8;
     unsigned char la = (unsigned char)(100 + glow * 80);
-    DrawRectangle(lineX, lineY, lineLen, 2, { 255, 220, 100, la });
-    DrawRectangle(lineX + 20, lineY + 6, lineLen - 40, 1, { 255, 200,  80, (unsigned char)(la / 2) });
+    DrawRectangle(710, 130, 500, 2, { 255, 220, 100, la });
+    DrawRectangle(730, 136, 460, 1, { 255, 200,  80, (unsigned char)(la / 2) });
 
     // --- Tính rect 2 card ---
     Rectangle easyRect, hardRect;
@@ -237,16 +227,16 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     }
 
     // --- Mô tả EASY ---
-    const char* easyDesc[] = {
-        "Bot moves randomly",
-        "Great for beginners",
-        "Relax and have fun!"
+    std::vector<const char*> easyDesc = {
+        getText("Difficulty.bot_moves_randomly", *ctx.curLanguage),
+        getText("Difficulty.great_for_beginners", *ctx.curLanguage),
+        getText("Difficulty.relax_and_have_fun", *ctx.curLanguage)
     };
     // --- Mô tả HARD ---
-    const char* hardDesc[] = {
-        "Bot looks 4 moves ahead",
-        "Blocks and attacks smart",
-        "Only for the brave!"
+    std::vector<const char*> hardDesc = {
+        getText("Difficulty.bot_looks_4_moves_ahead", *ctx.curLanguage),
+        getText("Difficulty.blocks_and_attacks_smart", *ctx.curLanguage),
+        getText("Difficulty.only_for_the_brave", *ctx.curLanguage)
     };
 
     // --- Accent colors ---
@@ -256,8 +246,9 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
     // --- Vẽ 2 card ---
     DrawDifficultyCard(
         tex.spriteGoblin,
-        "EASY", "Beginner Friendly",
-        easyDesc, 3,
+        getText("Difficulty.easy", *ctx.curLanguage),
+        getText("Difficulty.beginner_friendly", *ctx.curLanguage),
+        easyDesc,
         easyRect,
         ctx.difficulty == 0,
         hovEasy && ctx.difficulty != 0,
@@ -265,8 +256,9 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
 
     DrawDifficultyCard(
         tex.spriteDragon,
-        "HARD", "True Challenge",
-        hardDesc, 3,
+        getText("Difficulty.hard", *ctx.curLanguage),
+        getText("Difficulty.true_challenge", *ctx.curLanguage),
+        hardDesc,
         hardRect,
         ctx.difficulty == 1,
         hovHard && ctx.difficulty != 1,
@@ -274,26 +266,15 @@ void DrawDifficulty(AppContext& ctx, const TextureBank& tex)
 
     // --- VS ở giữa 2 card ---
     {
-        float vsX = (easyRect.x + easyRect.width + hardRect.x) / 2.0f;
-        float vsY = GetScreenHeight() / 2.0f;
         float pulse = (sinf(t * 3.0f) + 1.0f) / 2.0f;
         unsigned char vsA = (unsigned char)(160 + pulse * 80);
-        int vsScale = 5;
-        int vsW = (int)(2 * (FONT_GLYPH_W + FONT_SPACING) * vsScale);
-        DrawPixelText("VS",
-            (int)(vsX - vsW / 2),
-            (int)(vsY - FONT_GLYPH_H * vsScale / 2),
-            vsScale, { 255, 220, 80, vsA });
+        DrawPixelText("VS", 930, 523, 5, { 255, 220, 80, vsA });
     }
 
     // --- Hint phím ---
     {
-        const char* hint = "A/D or CLICK to select   ENTER to confirm";
-        int hw = (int)(strlen(hint) * (FONT_GLYPH_W + FONT_SPACING) * 2);
-        DrawPixelText(hint,
-            GetScreenWidth() / 2 - hw / 2,
-            GetScreenHeight() - 50,
-            2, { 180, 160, 90, 160 });
+        const char* hint = getText("Difficulty.hint_select_confirm", *ctx.curLanguage);
+        DrawPixelText(hint, 710, 1030, 2, { 180, 160, 90, 160 });
     }
 
     // --- Back button ---

@@ -1,4 +1,4 @@
-﻿#include "States.h"
+#include "States.h"
 #include "UI.h"
 #include "TextRenderer.h"
 #include "Constants.h"
@@ -54,16 +54,14 @@ void DrawModeSelection(AppContext& ctx, const TextureBank& tex)
 {
     DrawFullscreenTexture(tex.originBg);
 
-    int dialogX = GetScreenWidth() / 2 - tex.dialogModeGame.width / 2;
-    int dialogY = GetScreenHeight() / 2 - tex.dialogModeGame.height / 2;
-    DrawTexture(tex.dialogModeGame, dialogX, dialogY, WHITE);
+    DrawTexture(tex.dialogModeGame, 192, 28, WHITE);
 
-    DrawPixelTextStyled("MODE GAME", dialogX + 610, dialogY + 170, 6);
+    DrawPixelTextStyled(getText("Mode.mode_game",*ctx.curLanguage), 822, 193, 5);
 
     Color pvpColor = (ctx.selectedMode == 0) ? YELLOW : WHITE;
     Color pveColor = (ctx.selectedMode == 1) ? YELLOW : WHITE;
-    DrawPixelText("PVP", dialogX + 475, dialogY + 700, 6, pvpColor);
-    DrawPixelText("PVE", dialogX + 965, dialogY + 700, 6, pveColor);
+    DrawPixelText(getText("Mode.pvp",*ctx.curLanguage), 667, 728, 6, pvpColor);
+    DrawPixelText(getText("Mode.pve",*ctx.curLanguage), 1157, 728, 6, pveColor);
 
     bool hovered, clicked;
     DrawBackButton(tex.buttonBackNormal, tex.buttonBackHover, hovered, clicked);

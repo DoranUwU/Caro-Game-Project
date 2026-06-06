@@ -98,7 +98,7 @@ Gameplay.loaded_prefix,LOADED: ,ĐÃ TẢI:
 Gameplay.save_failed,SAVE FAILED!,LƯU THẤT BẠI!
 Gameplay.file_not_found,FILE NOT FOUND!,KHÔNG TÌM THẤY FILE!
 Gameplay.press_enter_or_click_home_to_return,Press ENTER or click HOME to return,Nhấn ENTER hoặc bấm HOME để quay về
-Gameplay.l_save_t_load,L SAVE T LOAD,L LƯU T TẢI
+Gameplay.l_save_t_load,L SAVE                               T LOAD,L LƯU                               T TẢI
 Gameplay.player_1,PLAYER 1,NGƯỜI CHƠI 1
 Gameplay.player_2,PLAYER 2,NGƯỜI CHƠI 2
 Gameplay.bot,BOT,MÁY
@@ -112,3 +112,8 @@ Gameplay.mage,Mage,Pháp sư
 Gameplay.archer,Archer,Cung thủ
 Gameplay.goblin,Goblin,Yêu tinh
 Gameplay.dragon,Dragon,Rồng
+Gameplay.exit_title,EXIT GAME,THOÁT GAME
+Gameplay.exit_warn,Your progress will not be saved,Tiến trình chơi sẽ không được lưu
+Gameplay.exit_confirm,Are you sure?,Bạn có chắc chắn không?
+Gameplay.yes,YES,CÓ
+Gameplay.no,NO,KHÔNG
