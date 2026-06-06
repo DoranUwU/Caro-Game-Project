@@ -6,11 +6,11 @@
 
 // Threshold at which a pattern score means "can win / must block"
 // getPatternScore(4, 1) == 1000, getPatternScore(4, 2) == 10000
-static const int THREAT_WIN      = 90000; // >= 5-in-a-row (win)
-static const int THREAT_OPEN4    =  9000; // open-4 or blocked-4 – must act now
+static const int THREAT_WIN = 90000; // >= 5-in-a-row (win)
+static const int THREAT_OPEN4 = 9000; // open-4 or blocked-4 – must act
 
 Position getBestMove(const GameState& state, int depth) {
-    Player self     = state.currentPlayer;
+    Player self = state.currentPlayer;
     Player opponent = (self == Player::PlayerX) ? Player::PlayerO : Player::PlayerX;
 
     MoveList candidates = getOrderedMoves(state);
@@ -58,6 +58,7 @@ Position getBestMove(const GameState& state, int depth) {
         // Re-fetch ordered moves each iteration; front-load the best move
         // found in the previous depth so alpha-beta prunes more aggressively.
         MoveList orderedMoves = getOrderedMoves(state);
+        int alpha = -INF;
         if (bestMove.row != -1) {
             for (int i = 0; i < orderedMoves.count; i++) {
                 if (orderedMoves.list[i] == bestMove) {
@@ -72,12 +73,13 @@ Position getBestMove(const GameState& state, int depth) {
         for (int i = 0; i < orderedMoves.count; i++) {
             Position move = orderedMoves.list[i];
             GameState nextState = playMove(state, move);
-            int score = -negamax_improved(nextState, currDepth - 1, -INF, INF, -colourMul);
+            int score = -negamax_improved(nextState, currDepth - 1, -INF, -alpha, -colourMul);
 
             if (score > bestScore) {
                 bestScore = score;
                 bestMoveAtCurrDepth = move;
             }
+            if (bestScore > alpha) alpha = bestScore;
         }
 
         bestMove = bestMoveAtCurrDepth;
