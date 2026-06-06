@@ -73,6 +73,10 @@ struct AppContext
     bool        enterGuard = false;  
     int         difficulty = 1;       
 
+    // Exit confirmation dialog
+    bool        showExitConfirm = false;
+    int         exitConfirmSelected = 1; // 0=YES, 1=NO (default NO)
+
     // Load Game screen
     int         loadSelectedIndex = 0;
     std::vector<std::string> saveFileList;
@@ -105,6 +109,8 @@ struct AppContext
         , saveLoadMsgTimer(0.0f)
         , enterGuard(false)
         , difficulty(1)
+        , showExitConfirm(false)
+        , exitConfirmSelected(1)
         , loadSelectedIndex(0)
         , saveFileList()
         , musicVolume(0.2f)

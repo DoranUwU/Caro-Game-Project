@@ -230,8 +230,82 @@ void UpdateGameplay(AppContext& ctx) {
         return;
     }
 
-    // --- Nút Home (Back) quay về menu ---
-    {
+    // --- Xử lý dialog xác nhận thoát ---
+    if (ctx.showExitConfirm) {
+        // ESC đóng dialog (hủy thoát)
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            ctx.showExitConfirm = false;
+            return;
+        }
+
+        // Điều hướng trái/phải giữa YES và NO
+        if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
+            ctx.exitConfirmSelected = 0;
+        }
+        if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
+            ctx.exitConfirmSelected = 1;
+        }
+
+        // Xử lý click chuột vào nút YES / NO
+        {
+            Vector2 mouse = GetMousePosition();
+            int pw = 700, ph = 280;
+            int px = GetScreenWidth() / 2 - pw / 2;
+            int py = GetScreenHeight() / 2 - ph / 2;
+            int btnW = 200, btnH = 50;
+            int btnY = py + ph - 80;
+            int btnYesX = px + pw / 2 - btnW - 30;
+            int btnNoX = px + pw / 2 + 30;
+
+            Rectangle yesRect = { (float)btnYesX, (float)btnY, (float)btnW, (float)btnH };
+            Rectangle noRect = { (float)btnNoX, (float)btnY, (float)btnW, (float)btnH };
+
+            if (CheckCollisionPointRec(mouse, yesRect)) {
+                ctx.exitConfirmSelected = 0;
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    ctx.showExitConfirm = false;
+                    ctx.screen = SCREEN_MENU;
+                    return;
+                }
+            }
+            if (CheckCollisionPointRec(mouse, noRect)) {
+                ctx.exitConfirmSelected = 1;
+                if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    ctx.showExitConfirm = false;
+                    return;
+                }
+            }
+        }
+
+        // ENTER xác nhận lựa chọn
+        if (IsKeyPressed(KEY_ENTER)) {
+            if (ctx.exitConfirmSelected == 0) {
+                // YES - thoát về menu
+                ctx.showExitConfirm = false;
+                ctx.screen = SCREEN_MENU;
+            } else {
+                // NO - đóng dialog, tiếp tục chơi
+                ctx.showExitConfirm = false;
+            }
+            return;
+        }
+
+        return; // Chặn mọi input gameplay khi dialog đang hiện
+    }
+
+    // --- Nút Home (Back) / ESC: hiện dialog xác nhận thoát ---
+    if (ctx.gameState.status == GameStatus::ONGOING) {
+        Vector2   mouse = GetMousePosition();
+        Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
+        if ((CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+            || IsKeyPressed(KEY_ESCAPE)) {
+            ctx.showExitConfirm = true;
+            ctx.exitConfirmSelected = 1; // mặc định chọn NO
+            return;
+        }
+    }
+    else {
+        // Game đã kết thúc -> thoát thẳng về menu
         Vector2   mouse = GetMousePosition();
         Rectangle rect = { BTN_BACK_X, BTN_BACK_Y, BTN_BACK_W, BTN_BACK_H };
         if ((CheckCollisionPointRec(mouse, rect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
@@ -393,8 +467,91 @@ void UpdateGameplay(AppContext& ctx) {
 }
 
 // ============================================================
-//  DrawSaveLoadDialog
+//  DrawExitConfirmDialog
 // ============================================================
+static void DrawExitConfirmDialog(const AppContext& ctx) {
+    if (!ctx.showExitConfirm) return;
+
+    float t = (float)GetTime();
+    float glow = (sinf(t * 4.0f) + 1.0f) / 2.0f;
+
+    // Nền mờ toàn màn hình
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), { 0, 0, 0, 180 });
+
+    // Panel chính
+    int pw = 700, ph = 280;
+    int px = GetScreenWidth() / 2 - pw / 2;
+    int py = GetScreenHeight() / 2 - ph / 2;
+
+    // Bóng đổ panel
+    DrawRectangle(px + 6, py + 6, pw, ph, { 0, 0, 0, 80 });
+    // Nền panel tối
+    DrawRectangle(px, py, pw, ph, { 15, 12, 8, 230 });
+    // Viền ngoài vàng nhấp nháy
+    unsigned char ba = (unsigned char)(160 + glow * 60);
+    DrawRectangleLinesEx({ (float)px, (float)py, (float)pw, (float)ph }, 3,
+        { 200, 170, 80, ba });
+    // Viền trong mờ
+    DrawRectangleLinesEx({ (float)(px + 6), (float)(py + 6), (float)(pw - 12), (float)(ph - 12) }, 1,
+        { 200, 170, 80, (unsigned char)(ba / 2) });
+
+    // === Tiêu đề ===
+    const char* title = "EXIT GAME";
+    unsigned char tb = (unsigned char)(200 + glow * 55);
+    Color titleCol = { 255, 100, 80, tb };
+    int tW = (int)(strlen(title) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_LG);
+    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2 + 2, py + 30 + 2, FONT_SCALE_LG, { 0, 0, 0, 180 });
+    DrawPixelText(title, GetScreenWidth() / 2 - tW / 2, py + 30, FONT_SCALE_LG, titleCol);
+
+    // === Dòng cảnh báo ===
+    const char* line1 = "Your progress will not be saved";
+    int l1W = (int)(strlen(line1) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
+    DrawPixelText(line1, GetScreenWidth() / 2 - l1W / 2, py + 95, FONT_SCALE_SM,
+        { 220, 200, 160, 230 });
+
+    const char* line2 = "Are you sure";
+    int l2W = (int)(strlen(line2) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_SM);
+    DrawPixelText(line2, GetScreenWidth() / 2 - l2W / 2, py + 130, FONT_SCALE_SM,
+        { 200, 190, 150, 200 });
+
+    // === Nút YES / NO ===
+    int btnW = 200, btnH = 50;
+    int btnY = py + ph - 80;
+    int btnYesX = px + pw / 2 - btnW - 30;
+    int btnNoX = px + pw / 2 + 30;
+
+    // --- Nút YES ---
+    bool yesSelected = (ctx.exitConfirmSelected == 0);
+    {
+        Color bgCol = yesSelected ? Color{ 140, 40, 30, 230 } : Color{ 40, 30, 20, 200 };
+        DrawRectangle(btnYesX, btnY, btnW, btnH, bgCol);
+
+        unsigned char borderA = yesSelected ? (unsigned char)(180 + glow * 75) : (unsigned char)120;
+        Color borderCol = yesSelected ? Color{ 255, 100, 80, borderA } : Color{ 150, 130, 80, borderA };
+        DrawRectangleLinesEx({ (float)btnYesX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
+
+        const char* yesText = "YES";
+        int yw = (int)(strlen(yesText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
+        Color yesCol = yesSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow * 55) } : Color{ 180, 160, 120, 200 };
+        DrawPixelText(yesText, btnYesX + btnW / 2 - yw / 2, btnY + 12, FONT_SCALE_MD, yesCol);
+    }
+
+    // --- Nút NO ---
+    bool noSelected = (ctx.exitConfirmSelected == 1);
+    {
+        Color bgCol = noSelected ? Color{ 30, 80, 50, 230 } : Color{ 40, 30, 20, 200 };
+        DrawRectangle(btnNoX, btnY, btnW, btnH, bgCol);
+
+        unsigned char borderA = noSelected ? (unsigned char)(180 + glow * 75) : (unsigned char)120;
+        Color borderCol = noSelected ? Color{ 100, 255, 120, borderA } : Color{ 150, 130, 80, borderA };
+        DrawRectangleLinesEx({ (float)btnNoX, (float)btnY, (float)btnW, (float)btnH }, 2, borderCol);
+
+        const char* noText = "NO";
+        int nw = (int)(strlen(noText) * (FONT_GLYPH_W + FONT_SPACING) * FONT_SCALE_MD);
+        Color noCol = noSelected ? Color{ 255, 220, 120, (unsigned char)(200 + glow * 55) } : Color{ 180, 160, 120, 200 };
+        DrawPixelText(noText, btnNoX + btnW / 2 - nw / 2, btnY + 12, FONT_SCALE_MD, noCol);
+    }
+}
 static void DrawSaveLoadDialog(const AppContext& ctx) {
     if (ctx.saveLoadMode == AppContext::SaveLoadMode::NONE) return;
 
@@ -610,4 +767,7 @@ void DrawGameplay(const AppContext& ctx, const TextureBank& tex) {
 
     // --- Dialog nhập tên file save/load ---
     DrawSaveLoadDialog(ctx);
+
+    // --- Dialog xác nhận thoát ---
+    DrawExitConfirmDialog(ctx);
 }
