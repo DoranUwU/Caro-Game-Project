@@ -462,9 +462,7 @@ void UpdateGameplay(AppContext& ctx)
     }
     if (IsKeyPressed(KEY_T) && ctx.saveLoadMode == AppContext::SaveLoadMode::NONE)
     {
-        ctx.saveLoadMode = AppContext::SaveLoadMode::LOADING;
-        ctx.saveLoadInput.clear();
-        ctx.saveLoadMsg.clear();
+        ctx.prevScreen = SCREEN_GAMEPLAY; ctx.screen = SCREEN_LOAD_GAME;
     }
 
     // --- Nut Settings ---

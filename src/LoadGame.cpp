@@ -135,7 +135,7 @@ void UpdateLoadGame(AppContext& ctx)
         if (backClicked || IsKeyPressed(KEY_ESCAPE))
         {
             needRefresh = true; // Reset cho lần sau
-            ctx.screen = SCREEN_MENU;
+            ctx.screen = ctx.prevScreen;
             return;
         }
     }
