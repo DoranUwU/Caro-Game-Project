@@ -1,4 +1,4 @@
-#include "UI.h"
+﻿#include "UI.h"
 #include "TextRenderer.h"
 #include "Constants.h"
 #include <math.h>
@@ -16,7 +16,7 @@ void DrawFullscreenTexture(Texture2D tex)
 int GetPixelFontTextWidth(const std::string& text, int scale)
 {
     if (text.empty()) return 0;
-    return (int)GetUTF8Length(text) * (FONT_GLYPH_W + FONT_SPACING) * scale;
+    return (int)text.size() * (FONT_GLYPH_W + FONT_SPACING) * scale;
 }
 
 //  DrawBackButton
@@ -83,7 +83,7 @@ bool DrawOverlayScreen(Texture2D bg,
 {
     DrawFullscreenTexture(bg);
 
-    int titleW = (int)(GetUTF8Length(title) * 6 * FONT_SCALE_XL);
+    int titleW = (int)(strlen(title) * 8 * FONT_SCALE_XL);
     DrawPixelTextStyled(title,
         GetScreenWidth() / 2 - titleW / 2,
         GetScreenHeight() / 2 - 40,

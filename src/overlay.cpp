@@ -46,6 +46,22 @@ void DrawClassicPanel(Rectangle panel, float glow)
     dot(panel.x + panel.width, panel.y + panel.height, cc);
 }
 
+void DrawOverlayTitle(const char* title, float glow)
+{
+    Color titleCol = { 255, 220, 100, (unsigned char)(200 + glow * 55) };
+    int tW = (int)(strlen(title) * 8 * FONT_SCALE_XL);
+    int tX = GetScreenWidth() / 2 - tW / 2;
+    DrawPixelText(title, tX + 4, PANEL_TITLE_Y + 4, FONT_SCALE_XL, { 0, 0, 0, 160 });
+    DrawPixelText(title, tX, PANEL_TITLE_Y, FONT_SCALE_XL, titleCol);
+
+    // Đường kẻ trang trí
+    int lineY = PANEL_TITLE_Y + FONT_SCALE_XL * 9 + 10;
+    int lineLen = 400;
+    int lineX = GetScreenWidth() / 2 - lineLen / 2;
+    unsigned char lineA = (unsigned char)(120 + glow * 80);
+    DrawRectangle(lineX, lineY, lineLen, 2, { 255, 220, 100, lineA });
+    DrawRectangle(lineX + 20, lineY + 6, lineLen - 40, 1, { 255, 200,  80, (unsigned char)(lineA / 2) });
+}
 
 void DrawPanelDivider(float x, float y, float w, float alpha)
 {
@@ -84,7 +100,7 @@ void DrawOverlay(const AppContext& ctx, const TextureBank& tex, const char* titl
     DrawFullscreenTexture(tex.originBg);
 
     // Nội dung theo màn hình
-    if (ctx.screen == SCREEN_SETTINGS)      DrawSettingsOverlay(ctx);
+    if (ctx.screen == SCREEN_SETTINGS) DrawSettingsOverlay(ctx);
     else if (ctx.screen == SCREEN_HELP)     DrawHelpOverlay(ctx);
     else if (ctx.screen == SCREEN_ABOUT)    DrawAboutUsOverlay(ctx);
 
