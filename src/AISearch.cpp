@@ -150,6 +150,6 @@ int evaluateMove(const GameState& state, Position pos) {
     int attackScore  = scoreThreat(state.board, pos, self);
     int defenceScore = scoreThreat(state.board, pos, opponent);
 
-    // Defence weighted 1.5x: prefer blocking over building when close in value
+    // Defence weighted 1.5x: prefer blocking over building when close in value. This score CANNOT be negative.
     return attackScore + defenceScore + defenceScore / 2;
 }
