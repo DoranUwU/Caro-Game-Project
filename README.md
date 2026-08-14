@@ -63,6 +63,6 @@ Nhấn đúp chuột vào file game.exe ở trong thư mục chính.
 
 * Chơi game Caro (Gomoku)
 * Save / Load trạng thái game (JSON)
-* Giao diện với thư viện raylib
+* Giao diện với thư viện raylib 
 ---
 
